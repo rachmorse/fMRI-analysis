@@ -1,0 +1,15 @@
+# Have the repository contain only the scripts
+
+# Ignore everything
+*
+
+# Do not ignore the .gitignore file itself
+!.gitignore
+
+# Do not ignore the Scripts directory and its contents
+!Scripts/
+!Scripts/**
+
+# Specifically ignore NIfTI files (just as a safety so no data goes on)
+*.nii
+*.nii.gz
