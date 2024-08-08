@@ -27,11 +27,11 @@ Below is the description and the usage of each script included in this repositor
         - Adjust paths for root, output and session (`ses`) as necessary.
         - The script supports parallel processing to speed up execution.
     - **Key Terms:**
-        - **Framewise Displacement (FWD)**
+        - *Framewise Displacement (FWD)*
             - A measure in fMRI analysis to quantify the amount of head movement between consecutive scans. It captures both translational (linear) and rotational (angular) movements, providing a single value that indicates the total displacement of the head. FWD is calculated as the sum of the absolute differences in head position and rotation between successive frames.
-        - **Scrubbing**
+        - *Scrubbing*
             - The process of removing or correcting fMRI data points that are affected by motion artifacts. Scrubbing aims to improve the quality of the data by mitigating the effects of head movement. It replaces timeseries values that are affected by significant movement with an estimated timeseries value using interpolation or extrapolation. 
-        - **Interpolation**
+        - *Interpolation*
             - The process of estimating unknown values (in this case, values removed due to high FWD values) that are within the range of known values.
                 - *Example:*
                     Imagine you have data points for tp 1, 2, 4, and 5, but the value for tp 3 has been removed because of high movement at tp 3:
@@ -40,7 +40,7 @@ Below is the description and the usage of each script included in this repositor
                         Value: 10  20  ??  40  50
                         ```
                     Interpolation estimates the missing value at tp 3 based on known neighboring values. 
-        - **Extrapolation**
+        - *Extrapolation*
             - The process of estimating unknown values (in this case, values removed due to high FWD values) that are outside the range of known values.
                 - *Example:*
                     Imagine you have data points at tp 1, 2, 3, and 4, but you need to estimate the value at tp 5:
@@ -58,7 +58,7 @@ Below is the description and the usage of each script included in this repositor
         - Adjust paths such as `freesurfer_folder`, `bids_folder`, `output_folder`, and `todo_file` to match your data structure.
         - This script relies on FreeSurfer tools and environment setup.
     - **Key Terms:**
-        - **Nearest Neighbor Interpolation**
+        - *Nearest Neighbor Interpolation*
             - A type of interpolation that assigns the value of the nearest known data point to the unknown data point. This method is often used in image processing to maintain discrete labels, like in ROIs.
 
 
