@@ -35,10 +35,10 @@ Below is the description and the usage of each script included in this repositor
             - The process of estimating unknown values (in this case, values removed due to high FWD values) that are within the range of known values.
                 - *Example:*
                     Imagine you have data points for tp 1, 2, 4, and 5, but the value for tp 3 has been removed because of high movement at tp 3:
-                        ```
-                        Time:   1   2  3   4   5
-                        Value: 10  20  ??  40  50
-                        ```
+                    ```
+                    Time:   1   2  3   4   5
+                    Value: 10  20  ??  40  50
+                    ```
                     Interpolation estimates the missing value at tp 3 based on known neighboring values. 
         - *Extrapolation*
             - The process of estimating unknown values (in this case, values removed due to high FWD values) that are outside the range of known values.
