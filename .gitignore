@@ -10,6 +10,9 @@
 !*.py
 !README.md
 
+# Ignore install FreeSurfer script
+install FreeSurfer.py
+
 # Specifically ignore NIfTI files (just as a safety so no data goes on)
 *.nii
 *.nii.gz
