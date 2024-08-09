@@ -9,15 +9,15 @@ class FC:
     Class to compute various functional connectivity (FC) metrics.
     
     Attributes:
-    fisher_ztrans (bool): Flag to determine if Fisher z-transformation should be applied.
+        fisher_ztrans (bool): Flag to determine if Fisher z-transformation should be applied.
     """
 
     def __init__(self, fisher_ztrans: bool = True):
         """
         Initialize the FC class with an optional Fisher z-transformation.
         
-        Parameters:
-        fisher_ztrans (bool): Whether to apply Fisher z-transformation.
+        Args:
+            fisher_ztrans (bool): Whether to apply Fisher z-transformation.
         """
         self.fisher_ztrans = fisher_ztrans
 
@@ -25,11 +25,11 @@ class FC:
         """
         Apply Fisher z-transformation if required.
         
-        Parameters:
-        correlations (np.ndarray): Correlation coefficients.
+        Args:
+            correlations (np.ndarray): Correlation coefficients.
         
         Returns:
-        np.ndarray: Transformed correlation coefficients.
+            np.ndarray: Transformed correlation coefficients.
         """
         return np.arctanh(correlations) if self.fisher_ztrans else correlations
 
@@ -37,12 +37,12 @@ class FC:
         """
         Load timeseries data from a file.
         
-        Parameters:
-        filepath (str): Path to the timeseries file.
-        index (int): Specific index if file contains multiple timeseries.
+        Args:
+            filepath (str): Path to the timeseries file.
+            index (int): Specific index if file contains multiple timeseries.
         
         Returns:
-        np.ndarray: Loaded timeseries data.
+            np.ndarray: Loaded timeseries data.
         """
         data = np.genfromtxt(filepath, delimiter=' ')
         return data if index is None else data[index]
@@ -55,16 +55,16 @@ class FC:
         one_timeseries_index: int = 0
     ) -> Dict[str, Union[str, np.ndarray]]:
         """
-        Compute Pearson correlations between one ROI's timeseries and all other ROIs timeseries.
+        Compute Pearson correlations between one ROI's timeseries and all other ROIs' timeseries.
         
-        Parameters:
-        subject_id (str): Subject ID.
-        one_timeseries_path (str): Path to the single timeseries file.
-        all_timeseries_path (str): Path to the file containing all timeseries.
-        one_timeseries_index (int): Index of the timeseries to be used from the one timeseries file.
+        Args:
+            subject_id (str): Subject ID.
+            one_timeseries_path (str): Path to the single timeseries file.
+            all_timeseries_path (str): Path to the file containing all timeseries.
+            one_timeseries_index (int): Index of the timeseries to be used from the one timeseries file.
         
         Returns:
-        dict: A dictionary containing the subject identifier, FC, and p-values.
+            dict: A dictionary containing the subject identifier, FC, and p-values.
         """
         print("Loading timeseries...")
         one_timeseries = self.load_timeseries(one_timeseries_path, one_timeseries_index)
@@ -86,14 +86,14 @@ class FC:
         """
         Compute one-to-all correlations for multiple subjects.
         
-        Parameters:
-        subjects (list): List of subject IDs.
-        one_timeseries_files (list): List of paths to the single timeseries files.
-        all_timeseries_files (list): List of paths to the files containing all timeseries.
-        one_timeseries_index (int): Index of the timeseries to be used from the one timeseries file.
+        Args:
+            subjects (list): List of subject IDs.
+            one_timeseries_files (list): List of paths to the single timeseries files.
+            all_timeseries_files (list): List of paths to the files containing all timeseries.
+            one_timeseries_index (int): Index of the timeseries to be used from the one timeseries file.
         
         Returns:
-        list: A list of dictionaries containing the FC results for each subject.
+            list: A list of dictionaries containing the FC results for each subject.
         """
         return [
             self.one_to_all(subject_id, one_ts, all_ts, one_timeseries_index)
@@ -106,12 +106,12 @@ class FC:
         For example, if you have `N` ROIs, this computes the correlation for each pair of ROIs, 
         resulting in an `N x N` connectivity matrix. 
         
-        Parameters:
-        subject_id (str): Subject identifier.
-        timeseries_path (str): Path to the file containing timeseries data.
+        Args:
+            subject_id (str): Subject identifier.
+            timeseries_path (str): Path to the file containing timeseries data.
         
         Returns:
-        dict: A dictionary containing the subject identifier, FC, and p-values.
+            dict: A dictionary containing the subject identifier, FC, and p-values.
         """
         print(f"Loading timeseries for {subject_id}...")
         timeseries_data = self.load_timeseries(timeseries_path)
@@ -137,12 +137,12 @@ class FC:
         """
         Compute all-to-all correlations for multiple subjects.
         
-        Parameters:
-        subjects (list): List of subject identifiers.
-        timeseries_files (list): List of paths to the files containing timeseries data.
+        Args:
+            subjects (list): List of subject identifiers.
+            timeseries_files (list): List of paths to the files containing timeseries data.
         
         Returns:
-        list: A list of dictionaries containing the FC results for each subject.
+            list: A list of dictionaries containing the FC results for each subject.
         """
         return [self.all_to_all(subject_id, ts) for subject_id, ts in zip(subjects, timeseries_files)]
 
@@ -151,13 +151,13 @@ class FC:
         Compute all-to-all Pearson correlations from BOLD image and mask image.
         Calculates connectivity between every voxel that is in the altas mask.
         
-        Parameters:
-        subject_id (str): Subject identifier.
-        bold_img (np.ndarray): BOLD image data.
-        mask_img (np.ndarray): Mask image data.
+        Args:
+            subject_id (str): Subject identifier.
+            bold_img (np.ndarray): BOLD image data.
+            mask_img (np.ndarray): Mask image data.
         
         Returns:
-        dict: A dictionary containing the subject identifier, and FC results.
+            dict: A dictionary containing the subject identifier, and FC results.
         """
         num_voxels = np.sum(mask_img > 0)
         print("Computing Pearson correlations...")

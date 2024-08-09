@@ -1,72 +1,71 @@
 
-# To run this file, run this in terminal because FreeSurfer needs to be called first:
-# source /home/rachel/freesurfer/freesurfer/SetUpFreeSurfer.sh
-# /home/rachel/Desktop/fMRI\ Analysis/venv/bin/python /home/rachel/Desktop/fMRI\ Analysis/DK76\ atlas\ to\ native\ space.py
-
 import os
 import subprocess
+from typing import Union
+from pathlib import Path
 
-# # Function to source the FreeSurfer environment
-# def source_freesurfer():
-#     """
-#     This function locates the FreeSurfer setup script (`SetUpFreeSurfer.sh`) in the FreeSurfer home directory,
-#     executes it in a new shell, and updates the current environment with any variables defined in the script.
-
-#     Note:
-#         This function uses `/bin/bash` to source the script and capture the environment variables.
-
-#     Raises:
-#         Exception: If the FreeSurfer setup script cannot be found or executed.
-#     """
-#     freesurfer_home = "/home/rachel/freesurfer/freesurfer"
-#     setup_script = os.path.join(freesurfer_home, 'SetUpFreeSurfer.sh')
-#     command = f"source {setup_script} && env"
-#     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, executable="/bin/bash")
-    
-#     # Update the environment variables
-#     for line in process.stdout:
-#         key, _, value = line.decode().partition("=")
-#         os.environ[key.strip()] = value.strip()
-#     process.communicate()
-
-# # Source FreeSurfer environment
-# source_freesurfer()
-
-# Main function for script
-def main():
+def process_subject(subject_id: str, freesurfer_folder: Path, fmri_folder: Path, output_folder: Path,
+                    mov_template: str, targ_template: str, output_template: str, session: str):
     """
-    Main function to create a DK atlas in the BOLD image space for each subject.
+    Process an individual subject to create DK atlas in their BOLD image space.
 
-    This function performs the following tasks:
-
-    1. Defines and updates necessary paths for input and output directories.
-    2. Reads list of subject IDs to process from a specified file (todo_file).
-    3. Ensures the output directory exists.
-    4. For each subject, constructs and executes the `mri_vol2vol` command to register the DK altas segmentation (that is in T1 from reconall process) to the subject BOLD image.
-    5. Checks for the existence of necessary files before processing each subject.
-    6. Handles any errors that occur during the execution of the command.
-
-    Notes:
-        - Paths such as `freesurfer_home`, `freesurfer_folder`, `bids_folder`, `output_folder`, and `todo_file` should be updated to reflect the correct locations on your system.
-        - The session timepoint `ses` is set to "01" by default; modify as needed.
-        - The `mri_vol2vol` command uses Nearest Neighbor interpolation and performs registration using the header.
-
-    Outputs:
-        - Native space DK atlas BOLD images per subject saved in the specified `output_folder` with filenames in the format `{subject_id}_DK76_BOLD-nativespace.nii.gz`.
-        - Console messages indicating the progress and status of each subject's processing.
+    Args:
+        subject_id (str): Subject ID
+        freesurfer_folder (Path): Path to the FreeSurfer Reconall folder.
+        fmri_folder (Path): Path to the fMRI preprocessed folder.
+        output_folder (Path): Path to the output folder.
+        mov_template (str): Template path for the movement file with placeholders.
+        targ_template (str): Template path for the target file with placeholders.
+        output_template (str): Template path for the output file with placeholders.
+        session (str): Timepoint.
 
     Raises:
-        SystemExit: If the todo_file does not exist.
         Exception: If any subprocess command fails or if required files for a subject are missing.
     """
-    
-    # Define paths and update as needed
-    freesurfer_folder = "/home/rachel/Desktop/fMRI Analysis/subjects/freesurfer-reconall"
-    bids_folder = "/home/rachel/Desktop/fMRI Analysis/subjects/BIDS"
-    output_folder = "/home/rachel/Desktop/fMRI Analysis/DK76"
-    todo_file = "/home/rachel/Desktop/fMRI Analysis/todo.csv"
-    ses = "01"
+    print(f"Processing {subject_id}...")
 
+    mov_file = mov_template.format(subject_id=subject_id)
+    targ_file = targ_template.format(subject_id=subject_id, session=session)
+    output_file = output_template.format(subject_id=subject_id)
+
+    # Check if the files exist before processing
+    if not os.path.isfile(mov_file):
+        print(f"Mov file {mov_file} does not exist. Skipping {subject_id}.")
+        return
+
+    if not os.path.isfile(targ_file):
+        print(f"Targ file {targ_file} does not exist. Skipping {subject_id}.")
+        return
+
+    # Construct the mri_vol2vol command
+    cmd = [
+        "mri_vol2vol",
+        "--mov", mov_file,
+        "--targ", targ_file,
+        "--o", output_file,
+        "--regheader",
+        "--interp", "nearest"
+    ]
+
+    # Execute the command
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"Successfully processed {subject_id}. Output saved to {output_file}.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error processing {subject_id}: {e}")
+
+def main(freesurfer_folder: Union[str, Path], 
+         output_folder: Union[str, Path], 
+         fmri_folder: Union[str, Path], 
+         mov_template: str, 
+         targ_template: str, 
+         output_template: str, 
+         todo_file: Union[str, Path], 
+         session: str):
+    """
+    Main function to create a DK atlas in the BOLD image space for each subject.
+    """
+    
     # Read subject IDs from the file
     if not os.path.isfile(todo_file):
         print(f"Todo file {todo_file} does not exist. Exiting.")
@@ -80,38 +79,40 @@ def main():
 
     # Process each subject
     for subject_id in subject_ids:
-        print(f"Processing {subject_id}...")
-        
-        # Define file paths
-        mov_file = os.path.join(freesurfer_folder, subject_id, "mri", "aparc.DKTatlas+aseg.mgz")
-        targ_file = os.path.join(bids_folder, subject_id, f"ses-{ses}", "func", f"{subject_id}_ses-{ses}_run-01_rest_bold_ap.nii.gz")
-        output_file = os.path.join(output_folder, f"{subject_id}_DK76_BOLD-nativespace.nii.gz")
-
-        # Check if the files exist before processing
-        if not os.path.isfile(mov_file):
-            print(f"Mov file {mov_file} does not exist. Skipping {subject_id}.")
-            continue
-
-        if not os.path.isfile(targ_file):
-            print(f"Targ file {targ_file} does not exist. Skipping {subject_id}.")
-            continue
-
-        # Construct the mri_vol2vol command
-        cmd = [
-            "mri_vol2vol",
-            "--mov", mov_file,
-            "--targ", targ_file,
-            "--o", output_file,
-            "--regheader",
-            "--interp", "nearest"
-        ]
-
-        # Execute the command
-        try:
-            subprocess.run(cmd, check=True)
-            print(f"Successfully processed {subject_id}. Output saved to {output_file}.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error processing {subject_id}: {e}")
+        process_subject(subject_id, freesurfer_folder, fmri_folder, output_folder, mov_template, targ_template, output_template, session)
 
 if __name__ == '__main__':
-    main()
+    # Define paths and update as needed
+    todo_file = Path("/home/rachel/Desktop/fMRI Analysis/todo.csv")
+    freesurfer_path = Path("/home/rachel/Desktop/fMRI Analysis/subjects/freesurfer-reconall")
+    fmri_folder = Path("/home/rachel/Desktop/fMRI Analysis/subjects/Preprocessed")
+    output_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
+    session = "01"
+
+    # Define how your files are named
+    mov_files = "aparc.DKTatlas+aseg.mgz"
+    targ_files = "{subject_id}_ses-{session}_run-01_rest_bold_ap_T1-space.nii.gz" 
+    output_files = "{subject_id}_DK76_BOLD-nativespace.nii.gz"
+
+    try:
+        with open(todo_file, "r") as f:
+            subjects_list = f.read().splitlines()
+        
+        subjects_list = [subject_id for subject_id in subjects_list if subject_id]
+
+        # Construct full paths to the NIfTI files
+        mov_template = freesurfer_path / "{subject_id}" / "mri" / mov_files
+        targ_template = fmri_folder / "{subject_id}" / targ_files.format(subject_id="{subject_id}", session=session)
+        output_template = output_directory / output_files
+
+        main(freesurfer_folder=freesurfer_path, 
+             output_folder=output_directory, 
+             bids_folder=fmri_folder,
+             mov_template=str(mov_template), 
+             targ_template=str(targ_template),
+             output_template=str(output_template),
+             todo_file=todo_file,
+             session=session)
+
+    except FileNotFoundError:
+        print(f"Todo file not found at: {todo_file}")

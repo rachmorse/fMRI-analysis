@@ -2,7 +2,7 @@ import os
 import nibabel as nib
 import numpy as np
 from dataclasses import dataclass
-from multiprocessing import Pool
+from pathlib import Path
 
 @dataclass
 class TimeseriesExtractor:
@@ -11,22 +11,23 @@ class TimeseriesExtractor:
     the DK mask in native BOLD space.
 
     Attributes:
-    masks_root_path (str): Root path where masks are stored.
-    unique_mask (bool): Flag to determine if masks are unique per subject.
+        masks_root_path (str): Root path where masks are stored.
+        unique_mask (bool): Flag to determine if masks are unique per subject.
     """
 
-    masks_root_path: str = "/home/rachel/Desktop/fMRI Analysis/DK76"
-    unique_mask: bool = True
+    masks_root_path: Path
+    unique_mask: bool
+    mask_filename_template: str
 
     def extract_and_save_timeseries(self, subject_id, bold_file_path, output_file):
         """
         Extracts timeseries from a BOLD image for a given subject using their DK mask
         and saves the extracted timeseries to the output file.
         
-        Parameters:
-        subject_id (str): Identifier for the subject.
-        bold_file_path (str): Path to the BOLD image file.
-        output_file (str): Path where the extracted timeseries will be saved.
+        Args:
+            subject_id (str): Identifier for the subject.
+            bold_file_path (str): Path to the BOLD image file.
+            output_file (str): Path where the extracted timeseries will be saved.
         """
         print(f"--- Processing subject: {subject_id} ---")
         
@@ -51,53 +52,53 @@ class TimeseriesExtractor:
             print(f"Timeseries saved to {output_file}")
         else:
             print("No valid timeseries extracted")
-
+    
     def _process_masks_and_extract_timeseries(self, subject_id, bold_img, output_file):
-        """
-        Processes the masks and extracts timeseries data from the BOLD image for a given subject.
-        
-        Parameters:
-        subject_id (str): Identifier for the subject.
-        bold_img (numpy.ndarray): BOLD image data.
-        output_file (str): Path where the extracted timeseries will be saved.
+            """
+            Processes the masks and extracts timeseries data from the BOLD image for a given subject.
+            
+            Args:
+                subject_id (str): Identifier for the subject.
+                bold_img (numpy.ndarray): BOLD image data.
+                output_file (str): Path where the extracted timeseries will be saved.
 
-        Returns:
-        numpy.ndarray: Extracted timeseries data from all applicable masks.
-        """
-        timeseries = []
-        mask_filename = f"{subject_id}_DK76_BOLD-nativespace_selected_ROIs.nii.gz" # This needs to be changed depending on the mask
-        mask_path = os.path.join(self.masks_root_path, mask_filename)
-        
-        # Load mask
-        try:
-            print(f"Reading mask: {mask_path}")
-            mask = nib.load(mask_path).get_fdata()
-            print("Mask loaded")
-        except FileNotFoundError:
-            print(f"Mask file not found: {mask_path}")
-            return np.array([])
-        except Exception as e:
-            print(f"Error loading mask: {e}")
-            return np.array([])
+            Returns:
+                numpy.ndarray: Extracted timeseries data from all applicable masks.
+            """
+            timeseries = []
+            mask_filename = self.mask_filename_template.format(subject_id=subject_id)
+            mask_path = os.path.join(self.masks_root_path, mask_filename)
+            
+            # Load mask
+            try:
+                print(f"Reading mask: {mask_path}")
+                mask = nib.load(mask_path).get_fdata()
+                print("Mask loaded")
+            except FileNotFoundError:
+                print(f"Mask file not found: {mask_path}")
+                return np.array([])
+            except Exception as e:
+                print(f"Error loading mask: {e}")
+                return np.array([])
 
-        # Extract timeseries from the mask
-        mask_timeseries = self._extract_timeseries_from_mask(mask, bold_img, subject_id, output_file)
-        timeseries.append(mask_timeseries)
+            # Extract timeseries from the mask
+            mask_timeseries = self._extract_timeseries_from_mask(mask, bold_img, subject_id, output_file)
+            timeseries.append(mask_timeseries)
 
-        return np.concatenate(timeseries, axis=0) if timeseries else np.array([])
+            return np.concatenate(timeseries, axis=0) if timeseries else np.array([])
 
     def _extract_timeseries_from_mask(self, mask, bold_img, subject_id, output_file):
         """
         Extracts the timeseries data from the BOLD image using the given mask.
         
-        Parameters:
-        mask (numpy.ndarray): Mask data.
-        bold_img (numpy.ndarray): BOLD image data.
-        subject_id (str): Identifier for the subject.
-        output_file (str): Path where the extracted timeseries will be saved.
+        Args:
+            mask (numpy.ndarray): Mask data.
+            bold_img (numpy.ndarray): BOLD image data.
+            subject_id (str): Identifier for the subject.
+            output_file (str): Path where the extracted timeseries will be saved.
 
         Returns:
-        numpy.ndarray: Extracted timeseries data.
+            numpy.ndarray: Extracted timeseries data.
         """
         print("Extracting timeseries using mask...")
         if mask.ndim == 4:  # Each slice is a separate network in a 4D mask
@@ -111,14 +112,14 @@ class TimeseriesExtractor:
         """
         Extracts timeseries from a 4D mask where each slice represents a network.
         
-        Parameters:
-        mask (numpy.ndarray): 4D mask data.
-        bold_img (numpy.ndarray): BOLD image data.
-        subject_id (str): Identifier for the subject.
-        output_file (str): Path where error logs might be recorded (if necessary).
+        Args:
+            mask (numpy.ndarray): 4D mask data.
+            bold_img (numpy.ndarray): BOLD image data.
+            subject_id (str): Identifier for the subject.
+            output_file (str): Path where error logs might be recorded (if necessary).
 
         Returns:
-        numpy.ndarray: Extracted timeseries data.
+            numpy.ndarray: Extracted timeseries data.
         """
         timeseries = []
         n_networks = mask.shape[3]
@@ -137,14 +138,14 @@ class TimeseriesExtractor:
         """
         Extracts timeseries from a 3D mask where unique values represent different networks.
         
-        Parameters:
-        mask (numpy.ndarray): 3D mask data.
-        bold_img (numpy.ndarray): BOLD image data.
-        subject_id (str): Identifier for the subject.
-        output_file (str): Path where error logs might be recorded (if necessary).
+        Args:
+            mask (numpy.ndarray): 3D mask data.
+            bold_img (numpy.ndarray): BOLD image data.
+            subject_id (str): Identifier for the subject.
+            output_file (str): Path where error logs might be recorded (if necessary).
 
         Returns:
-        numpy.ndarray: Extracted timeseries data.
+            numpy.ndarray: Extracted timeseries data.
         """
         timeseries = []
         unique_ROIs = np.unique(mask)
@@ -166,15 +167,15 @@ class TimeseriesExtractor:
         """
         Computes the timeseries for a given region of interest (ROI) mask slice.
         
-        Parameters:
-        mask_slice (numpy.ndarray): 3D mask slice data for a specific ROI.
-        bold_img (numpy.ndarray): BOLD image data.
-        subject_id (str): Identifier for the subject.
-        output_file (str): Path where error logs might be recorded (if necessary).
-        roi_id (int): Identifier for the region of interest.
+        Args:
+            mask_slice (numpy.ndarray): 3D mask slice data for a specific ROI.
+            bold_img (numpy.ndarray): BOLD image data.
+            subject_id (str): Identifier for the subject.
+            output_file (str): Path where error logs might be recorded (if necessary).
+            roi_id (int): Identifier for the region of interest.
 
         Returns:
-        numpy.ndarray: Computed ROI timeseries data.
+            numpy.ndarray: Computed ROI timeseries data.
         """
         ROI_timeseries = []
         coords = np.where(mask_slice)

@@ -6,13 +6,12 @@
 # Do not ignore .gitignore file
 !.gitignore
 
+# Do not ignore requirements file
+!requirements.txt
+
 # Do not ignore Python script files in the root directory
 !*.py
 !README.md
 
 # Ignore install FreeSurfer script
 install FreeSurfer.py
-
-# Specifically ignore NIfTI files (just as a safety so no data goes on)
-*.nii
-*.nii.gz

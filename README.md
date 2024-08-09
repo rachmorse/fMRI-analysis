@@ -111,9 +111,8 @@ Below is the description and the usage of each script included in this repositor
         - The script leverages the `FC` class from the `compute_functional_connectivity.py` file.
 
 ## Setup
-- Ensure that all necessary Python packages are installed. You may use `pip` to install them:
+- Ensure the requirements are installed
     ```bash
-    pip install os pandas numpy nibabel scipy matplotlib
+    pip install -r requirements.txt
     ```
-- Some scripts, such as `transform_dk_atlas_native_space.py`, require FreeSurfer to be correctly installed and configured on your system.
-`
+- The script `transform_dk_atlas_native_space.py`, require FreeSurfer to be correctly installed and configured on your system.
