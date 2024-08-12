@@ -26,7 +26,7 @@ def compute_and_save_fc(fisher_ztrans, output_path_base, csv_output_name, subjec
     fc_instance = FC(fisher_ztrans=fisher_ztrans)
     
     # Compute the functional connectivity for all subjects
-    functional_connectivity = fc_instance.multiple_all_to_all(subjects, timeseries_files)
+    functional_connectivity = fc_instance.compute_all_to_all(subjects, timeseries_files)
 
     # Save the functional connectivity matrix in a pickle file
     pkl_output_path = f"{output_path_base}.pkl"

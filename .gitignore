@@ -15,3 +15,6 @@
 
 # Ignore install FreeSurfer script
 install FreeSurfer.py
+
+# Ignore compute_functional_connectivity_test script
+compute_functional_connectivity_test.py

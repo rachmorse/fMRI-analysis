@@ -20,10 +20,10 @@ Below is the description and the usage of each script included in this repositor
 1. **`scrubbing_fMRI.py`**
     - **Purpose:** Scrubs fMRI BOLD images based on a Framewise Displacement (FWD) threshold to help mitigate motion artifacts. It either removes or interpolates timepoints where a subject has a high FWD (e.g. 0.5).
     - **Functions:**
-        - `analyze_threshold(data, threshold, total_scans, affected_percentage)`: Analyzes and visualizes subjects' movement above a given FWD threshold.
-        - `scrub(bold_file, fwd_file, scrubbed_file, threshold, method)`: Scrubs the BOLD images based on the FWD threshold using specified methods ('cut' or 'interpolate').
-        - `process_subject(subject, ses, root, threshold, output_data, error_log)`: Processes an individual subject’s BOLD file and scrubs it.
-        - `main(multi)`: Main function to initialize and process all subjects either sequentially or in parallel. Allows input of session timepoint, threshold, and directories for data input and output.
+        - `analyze_threshold`: Analyzes and visualizes subjects' movement above a given FWD threshold.
+        - `scrub`: Scrubs the BOLD images based on the FWD threshold using specified methods ('cut' or 'interpolate').
+        - `process_subject`: Processes an individual subject’s BOLD file and scrubs it.
+        - `main`: Main function to initialize and process all subjects either sequentially or in parallel. Allows input of session timepoint, threshold, and directories for data input and output.
     - **Notes:**
         - Adjust paths for data input and output (including names for this data), session (`ses`), and threshold.
         - The script supports parallel processing to speed up execution.
@@ -54,8 +54,8 @@ Below is the description and the usage of each script included in this repositor
 2. **`transform_dk_atlas_native_space.py`**
     - **Purpose:** Resample the DK atlas from the subject's T1 space to the subject's native BOLD space using `mri_vol2vol` from FreeSurfer. The DK atlas requires resampling to ensures that the atlas is tailored to the individual's brain morphology, rather than a generalized MNI space. During FreeSurfer's `recon-all` (cortical reconstruction) process, a version of the DK atlas is created that is specific to each subject's T1-weighted anatomical space. To utilize this atlas for fMRI analysis, you need to resample the T1-specific DK atlas to the subject's native BOLD space. 
     - **Functions:**
-        - `process_subject(freesurfer_folder)`: Creates DK atlas in an individual subject's BOLD image space.
-        - `main(multi)`: Main function to initialize and process all subjects. Allows input of session timepoint and directories for data input and output.
+        - `process_subject`: Creates DK atlas in an individual subject's BOLD image space.
+        - `main`: Main function to initialize and process all subjects. Allows input of session timepoint and directories for data input and output.
     - **Notes:**
         - Adjust paths for data input and output and session (`ses`).
         - This script requires FreeSurfer to be set up on your system.
@@ -66,21 +66,21 @@ Below is the description and the usage of each script included in this repositor
 3. **`select_specific_rois.py`**
     - **Purpose:** Processes and saves specific ROIs from the DK atlases in the native BOLD space, zeroing out other regions not listed as selected. This script take a list of ROIs from the DK atlas that you are most interested in analyzing and removes the other ROIs from the DK atlases that were created for each subject in `transform_dk_atlas_native_space.py`.
     - **Functions:**
-        - `main(multi)`: Main function to load subjects and chosen ROIs, then process and save the specified ROIs for each subject.
+        - `main`: Main function to load subjects and chosen ROIs, then process and save the specified ROIs for each subject.
     - **Notes:**
         - Adjust paths for data input and output.
 
 4. **`extract_timeseries.py`**
     - **Purpose:** Extracts timeseries data from fMRI BOLD images using the DK atlas in native BOLD space. This script defines the `TimeseriesExtractor` class, which is utilized in the subsequent `extract_subjects_timeseries.py` script to extract and save timeseries data for the selected ROIs for each subject.
     - **Classes:**
-        eseriesExtractor`: A dataclass to manage the extraction of timeseries data from BOLD images using atlas masks.
+        -`TimeseriesExtractor`: A dataclass to manage the extraction of timeseries data from BOLD images using atlas masks.
     - **Functions:** Each subsequent function is designed to call on the one before it, progressively processing the data step-by-step.
-        - `extract_and_save_timeseries(subject_id, bold_file_path, output_file)`: Loads the BOLD image for a given subject, uses the subject-specific DK mask to extract the timeseries data, and saves the extracted timeseries to an output file.
-        - `_process_masks_and_extract_timeseries(subject_id, bold_img, output_file)`: Processes the mask and extracts timeseries data from the BOLD image for a given subject.
-        - `_extract_timeseries_from_mask(mask, bold_img, subject_id, output_file)`: Determines the type of mask (3D or 4D) and extracts the timeseries data accordingly. Note - the DK atlas is 3D and 4D processing is not used here.
-        - `_extract_timeseries_from_4d_mask(mask, bold_img, subject_id, output_file)`: Extracts the timeseries from a 4D mask (where each slice represents a different network or region). 
-        - `_extract_timeseries_from_3d_mask(mask, bold_img, subject_id, output_file)`: Extracts the timeseries from a 3D mask (where unique voxel values represent different networks or regions).
-        - `_compute_ROI_timeseries(mask_slice, bold_img, subject_id, output_file, roi_id)`: Computes the average BOLD signal within an ROI mask slice over time.
+        - `extract_and_save_timeseries`: Loads the BOLD image for a given subject, uses the subject-specific DK mask to extract the timeseries data, and saves the extracted timeseries to an output file.
+        - `_process_masks_and_extract_timeseries`: Processes the mask and extracts timeseries data from the BOLD image for a given subject.
+        - `_extract_timeseries_from_mask`: Determines the type of mask (3D or 4D) and extracts the timeseries data accordingly. Note - the DK atlas is 3D and 4D processing is not used here.
+        - `_extract_timeseries_from_4d_mask`: Extracts the timeseries from a 4D mask (where each slice represents a different network or region). 
+        - `_extract_timeseries_from_3d_mask`: Extracts the timeseries from a 3D mask (where unique voxel values represent different networks or regions).
+        - `_compute_ROI_timeseries`: Computes the average BOLD signal within an ROI mask slice over time.
 
 5. **`extract_subjects_timeseries.py`**
     - **Purpose:** Runs the timeseries extraction process for multiple subjects using `TimeseriesExtractor` using the DK atlas masks created in `select_specific_rois.py` to extract and save the timeseries.
@@ -96,24 +96,22 @@ Below is the description and the usage of each script included in this repositor
     - **Class:** 
         - `FC`: A dataclass to manage the computation of functional connectivity from the timeseries data.
         - **Attributes:**
-            - `fisher_ztrans`: Flag for applying Fisher z-transformation.
-        - **Functions:**
-            - `load_timeseries(filepath, index)`: Loads timeseries data from a file.
-            - `one_to_all(subject_id, one_timeseries_path, all_timeseries_path, one_timeseries_index)`: Computes one-to-all FC.
-            - `multiple_one_to_all(subjects, one_timeseries_files, all_timeseries_files, one_timeseries_index)`: Computes one-to-all FC for multiple subjects.
-            - `all_to_all(subject_id, timeseries_path)`: Computes all-to-all Pearson correlations.
-            - `multiple_all_to_all(subjects, timeseries_files)`: Computes all-to-all correlations for multiple subjects.
-            - `all_to_all_from_img(subject_id, bold_img, mask_img)`: Computes all-to-all correlations from BOLD and mask images.
+            - `fisher_ztrans`: Flag for applying Fisher z-transformation. This transformation converts Pearson correlation coefficients into a normally distributed metric.
+        - **Functions:** These functions are used for general FC analysis, and while not all are applied in `dk_atlas_fc_analysis.py`, they provide a comprehensive toolkit for FC calculations. 
+            - `load_timeseries`: Reads timeseries data from a specified file.
+            - `compute_one_to_all`: Computes one-to-all FC, or the connectivity between a specific ROI's timeseries and all other ROIs' timeseries for one or multiple subjects.
+            - `compute_all_to_all`: Computes all-to-all Pearson correlations for one or multiple subjects. For example, if you have `N` ROIs, this computes the correlation for each pair of ROIs, resulting in an `N x N` connectivity matrix. 
+            - `all_to_all_from_img`: Computes all-to-all correlations from BOLD and mask _images_. Calculates connectivity between every voxel that is in the altas mask, resulting in a voxel-wise connectivity matrix.
 
 7. **`dk_atlas_fc_analysis.py`**
-    - **Purpose:** Compute and save the FC matrix for a set of subjects using their timeseries data. The script processes timeseries data, computes FC with and without Fisher z-transformation, and saves the results to both pickle and CSV files for further analysis.
+    - **Purpose:**  Runs the `FC` class from `compute_functional_connectivity.py` to compute and save the FC matrix for a set of subjects using their timeseries data. The script processes timeseries data, computes FC with and without Fisher z-transformation, and saves the results to both pickle and CSV files for further analysis.
     - **Functions:**
-        - `main(multi)`: Main function to initialize paths and parameters, retrieve timeseries data, compute FC matrices, and save the results.
-        - `compute_and_save_fc(fisher_ztrans, output_path_base)`: Helper function within `main` to compute and save FC matrices, both Fisher z-transformed and non-Fisher z-transformed.
+        - `compute_and_save_fc`: Computes and saves FC matrices, both Fisher z-transformed and non-Fisher z-transformed.
+        - `main`: Main function to initialize paths and parameters, retrieve timeseries data, compute FC matrices, and save the results.
     - **Notes:**
-        - Adjust paths for `timeseries_root` and `output_dir` to match your data structure.
-        - Ensure the chosen ROI names file path is correctly specified.
-        - The script leverages the `FC` class from the `compute_functional_connectivity.py` file.
+        - This script only calculated FC from all ROIs to all other ROIs. To use the other functions in `compute_functional_connectivity.py`, please write them into this script. 
+        - Adjust paths for data input and output (including names for this data). 
+        - Ensure the selected ROI names file path is correctly specified.
 
 ## Setup
 - Ensure the requirements are installed
