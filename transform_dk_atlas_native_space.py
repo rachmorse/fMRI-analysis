@@ -11,12 +11,12 @@ def process_subject(subject_id: str, freesurfer_folder: Path, fmri_folder: Path,
 
     Args:
         subject_id (str): Subject ID
-        freesurfer_folder (Path): Path to the FreeSurfer Reconall folder.
+        freesurfer_folder (Path): Path to the FreeSurfer recon-all folder.
         fmri_folder (Path): Path to the fMRI preprocessed folder.
         output_folder (Path): Path to the output folder.
-        mov_template (str): Template path for the movement file with placeholders.
-        targ_template (str): Template path for the target file with placeholders.
-        output_template (str): Template path for the output file with placeholders.
+        mov_template (str): Path / template for the input file (e.g. DK atlas).
+        targ_template (str): Path / template for the output file (e.g. fMRI image).
+        output_template (str): Path / template for the output file (e.g. DK atlas transformed to fMRI image).
         session (str): Timepoint.
 
     Raises:
@@ -54,18 +54,26 @@ def process_subject(subject_id: str, freesurfer_folder: Path, fmri_folder: Path,
     except subprocess.CalledProcessError as e:
         print(f"Error processing {subject_id}: {e}")
 
-def main(freesurfer_folder: Union[str, Path], 
-         output_folder: Union[str, Path], 
-         fmri_folder: Union[str, Path], 
-         mov_template: str, 
-         targ_template: str, 
-         output_template: str, 
-         todo_file: Union[str, Path], 
-         session: str):
+def main(freesurfer_folder: Union[str, Path], output_folder: Union[str, Path], fmri_folder: Union[str, Path], 
+         mov_template: str, targ_template: str, output_template: str, todo_file: Union[str, Path], session: str):
     """
     Main function to create a DK atlas in the BOLD image space for each subject.
-    """
+
+    Args:  
+        freesurfer_folder (Path): Path to the FreeSurfer recon-all folder.
+        output_folder (Path): Path to the output folder.
+        fmri_folder (Path): Path to the fMRI preprocessed folder.
+        mov_template (str): Path / template for the input file (e.g. DK atlas).
+        targ_template (str): Path / template for the output file (e.g. fMRI image).
+        output_template (str): Path / template for the output file (e.g. DK atlas transformed to fMRI image).
+        todo_file (Path): Path to the todo file (created in scrubbing_fMRI.py) with subject IDs to be processed. 
+        session (str): Timepoint.
     
+    Raises:
+        FileNotFoundError: If the `todo_file` does not exist.
+        Exception: If any subprocess command fails or if required files for a subject are missing.
+    """
+
     # Read subject IDs from the file
     if not os.path.isfile(todo_file):
         print(f"Todo file {todo_file} does not exist. Exiting.")
@@ -102,12 +110,12 @@ if __name__ == '__main__':
 
         # Construct full paths to the NIfTI files
         mov_template = freesurfer_path / "{subject_id}" / "mri" / mov_files
-        targ_template = fmri_folder / "{subject_id}" / targ_files.format(subject_id="{subject_id}", session=session)
+        targ_template = fmri_folder / targ_files.format(subject_id="{subject_id}", session=session)
         output_template = output_directory / output_files
 
         main(freesurfer_folder=freesurfer_path, 
              output_folder=output_directory, 
-             bids_folder=fmri_folder,
+             fmri_folder=fmri_folder,
              mov_template=str(mov_template), 
              targ_template=str(targ_template),
              output_template=str(output_template),

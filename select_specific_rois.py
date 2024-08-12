@@ -1,11 +1,10 @@
-import os
 import pandas as pd
 import numpy as np
 import nibabel as nib
 from typing import Union, List
 from pathlib import Path
 
-def main(selected_rois_path: Union[str, Path], nifti_filepaths: List[str], output_folder: Union[str, Path] = None):
+def main(selected_rois_path: Union[str, Path], nifti_paths: List[str], output_folder: Union[str, Path] = None):
     """
     Main function to process and save ROI-specific NIfTI images for each subject.
     
@@ -13,9 +12,13 @@ def main(selected_rois_path: Union[str, Path], nifti_filepaths: List[str], outpu
     corresponding NIfTI files to zero out ROIs that are not in the list.
     
     Args:
-        - selected_rois_path: Path to the CSV file containing selected ROIs.
-        - nifti_filepaths: List of NIfTI file paths to be processed.
-        - output_folder: Directory to save the processed NIfTI files. Default is to create a folder called 'data'.
+        selected_rois_path (Path): Path to the CSV file containing selected ROIs.
+        nifti_paths (Path): List of NIfTI file paths to be processed (e.g. where the subject-specfic BOLD DK atlas masks are)
+        output_folder (Path): Directory to save the processed NIfTI files. Default is to create a folder called 'data'.
+
+    Raises:
+        FileNotFoundError: If the `selected_rois_csv` does not exist.
+        Exception: If any required file or directory is not found.
     """
     # Define output folder path
     if not output_folder:
@@ -34,7 +37,7 @@ def main(selected_rois_path: Union[str, Path], nifti_filepaths: List[str], outpu
         raise FileNotFoundError(f"Selected ROIs file not found at: {selected_rois_path}")
 
     # Process each subject's NIfTI file
-    for nifti_file in nifti_filepaths:
+    for nifti_file in nifti_paths:
         print(f"Processing NIfTI file: {nifti_file}")
 
         try:
@@ -63,9 +66,9 @@ def main(selected_rois_path: Union[str, Path], nifti_filepaths: List[str], outpu
 
 if __name__ == '__main__':
     # Change to your paths
-    todo_file = Path("/home/rachel/Desktop/fMRI Analysis/todo.csv")
+    todo_file = Path("/home/rachel/Desktop/fMRI Analysis/todo.csv") # Path to the todo file (created in scrubbing_fMRI.py) with subject IDs to be processed. 
     selected_rois_csv = Path("/pool/guttmann/laboratori/scripts/BOLD_connectivity/chosen_areas.csv") 
-    nifti_file_path = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
+    nifti_file_path = Path("/home/rachel/Desktop/fMRI Analysis/DK76") 
     output_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
 
     # Define how your NIfTI files are named
@@ -79,6 +82,6 @@ if __name__ == '__main__':
         # Construct full paths to the NIfTI files
         nifti_files = [nifti_file_path / nifti_file_format.format(subject_id=subject_id) for subject_id in subjects_list]
         
-        main(selected_rois_path=selected_rois_csv, nifti_filepaths=nifti_files, output_folder=output_directory)
+        main(selected_rois_path=selected_rois_csv, nifti_paths=nifti_files, output_folder=output_directory)
     except FileNotFoundError:
         print(f"Todo file not found at: {todo_file}")

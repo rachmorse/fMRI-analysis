@@ -7,12 +7,12 @@ from pathlib import Path
 @dataclass
 class TimeseriesExtractor:
     """
-    Class to extract timeseries data from fMRI BOLD images using 
-    the DK mask in native BOLD space.
+    Class to extract timeseries data from fMRI BOLD images using the DK atlas in native BOLD space.
 
-    Attributes:
-        masks_root_path (str): Root path where masks are stored.
+    Args:
+        masks_root_path (Path): Path where atlases (e.g. masks) are stored.
         unique_mask (bool): Flag to determine if masks are unique per subject.
+        mask_filename_template (str): Pattern for the mask file names.
     """
 
     masks_root_path: Path
@@ -25,8 +25,8 @@ class TimeseriesExtractor:
         and saves the extracted timeseries to the output file.
         
         Args:
-            subject_id (str): Identifier for the subject.
-            bold_file_path (str): Path to the BOLD image file.
+            subject_id (str): Subject ID.
+            bold_file_path (str): Path to the BOLD image file resampled to the DK atlas.
             output_file (str): Path where the extracted timeseries will be saved.
         """
         print(f"--- Processing subject: {subject_id} ---")
@@ -58,7 +58,7 @@ class TimeseriesExtractor:
             Processes the masks and extracts timeseries data from the BOLD image for a given subject.
             
             Args:
-                subject_id (str): Identifier for the subject.
+                subject_id (str): Subject ID.
                 bold_img (numpy.ndarray): BOLD image data.
                 output_file (str): Path where the extracted timeseries will be saved.
 
@@ -94,7 +94,7 @@ class TimeseriesExtractor:
         Args:
             mask (numpy.ndarray): Mask data.
             bold_img (numpy.ndarray): BOLD image data.
-            subject_id (str): Identifier for the subject.
+            subject_id (str): Subject ID.
             output_file (str): Path where the extracted timeseries will be saved.
 
         Returns:
@@ -115,8 +115,8 @@ class TimeseriesExtractor:
         Args:
             mask (numpy.ndarray): 4D mask data.
             bold_img (numpy.ndarray): BOLD image data.
-            subject_id (str): Identifier for the subject.
-            output_file (str): Path where error logs might be recorded (if necessary).
+            subject_id (str): Subject ID.
+            output_file (str): Path where error logs are recorded (if necessary).
 
         Returns:
             numpy.ndarray: Extracted timeseries data.
@@ -141,8 +141,8 @@ class TimeseriesExtractor:
         Args:
             mask (numpy.ndarray): 3D mask data.
             bold_img (numpy.ndarray): BOLD image data.
-            subject_id (str): Identifier for the subject.
-            output_file (str): Path where error logs might be recorded (if necessary).
+            subject_id (str): Subject ID.
+            output_file (str): Path where error logs are recorded (if necessary).
 
         Returns:
             numpy.ndarray: Extracted timeseries data.
@@ -165,14 +165,14 @@ class TimeseriesExtractor:
 
     def _compute_ROI_timeseries(self, mask_slice, bold_img, subject_id, output_file, roi_id):
         """
-        Computes the timeseries for a given region of interest (ROI) mask slice.
+        Computes the timeseries for a given ROI mask slice.
         
         Args:
             mask_slice (numpy.ndarray): 3D mask slice data for a specific ROI.
             bold_img (numpy.ndarray): BOLD image data.
-            subject_id (str): Identifier for the subject.
-            output_file (str): Path where error logs might be recorded (if necessary).
-            roi_id (int): Identifier for the region of interest.
+            subject_id (str): Subject ID.
+            output_file (str): Path where error logs are recorded (if necessary).
+            roi_id (int): ROI ID.
 
         Returns:
             numpy.ndarray: Computed ROI timeseries data.

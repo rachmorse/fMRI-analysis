@@ -3,7 +3,9 @@ import numpy as np
 from scipy.stats import pearsonr
 from itertools import combinations
 from typing import List, Dict, Union
+from dataclasses import dataclass
 
+@dataclass
 class FC:
     """
     Class to compute various functional connectivity (FC) metrics.
@@ -12,14 +14,7 @@ class FC:
         fisher_ztrans (bool): Flag to determine if Fisher z-transformation should be applied.
     """
 
-    def __init__(self, fisher_ztrans: bool = True):
-        """
-        Initialize the FC class with an optional Fisher z-transformation.
-        
-        Args:
-            fisher_ztrans (bool): Whether to apply Fisher z-transformation.
-        """
-        self.fisher_ztrans = fisher_ztrans
+    fisher_ztrans: bool
 
     def fisher_transform(self, correlations: np.ndarray) -> np.ndarray:
         """
