@@ -1,10 +1,12 @@
 import os
+import pandas as pd
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from nilearn.connectome import ConnectivityMeasure
-from typing import List
+from typing import List, Optional
 from scipy.stats import pearsonr
+from itertools import combinations
 
 
 def fisher_transform(correlations: np.ndarray) -> np.ndarray:
@@ -20,16 +22,26 @@ def fisher_transform(correlations: np.ndarray) -> np.ndarray:
     return np.arctanh(correlations)
 
 
-def compute_functional_connectivity(subject_id: str, timeseries: np.ndarray, output_dir: Path, one_timeseries_index: int = None) -> np.ndarray:
+def compute_functional_connectivity(subject_id: str, 
+                                    timeseries: np.ndarray, 
+                                    output_dir: Path, 
+                                    one_timeseries_index: Optional[int] = None, 
+                                    selected_rois_csv: Optional[Path] = None, 
+                                    roi_column_name: Optional[str] = None, 
+                                    subjects: Optional[List[str]] = None) -> np.ndarray:
     """
     Compute the connectivity matrix from the extracted timeseries data and save both
     the raw and Fisher z-transformed connectivity matrices. Optionally, compute and save one-to-all correlations.
+    Additionally, save group CSV with FC data for all the ROIs with the ROI names.
 
     Args:
         subject_id (str): Identifier for the subject.
         timeseries (np.ndarray): Timeseries data extracted from the fMRI BOLD image.
         output_dir (Path): Directory where the connectivity matrices will be saved.
-        one_timeseries_index (int, optional): Index of the timeseries for computing one-to-all correlations. Default is None.
+        one_timeseries_index (Optional[int], optional): Index of the timeseries for computing one-to-all correlations. Default is None.
+        selected_rois_csv (Optional[Path], optional): Path to the selected ROIs CSV. Default is None.
+        roi_column_name (Optional[str], optional): Name of the column containing ROI names. Default is None.
+        subjects (Optional[List[str]], optional): List of subjects. Default is None.
 
     Returns:
         np.ndarray: The raw connectivity matrix.
@@ -72,6 +84,41 @@ def compute_functional_connectivity(subject_id: str, timeseries: np.ndarray, out
             np.savetxt(output_file_one_to_all_fisher_z, one_to_all_fisher_z, delimiter=",")
         else:
             print(f"Invalid one_timeseries_index: {one_timeseries_index} for subject {subject_id}")
+
+    # Prepare and save group CSV with FC data for all ROIs with the ROI names
+    if selected_rois_csv and roi_column_name and subjects:
+        # Read the selected ROIs from CSV and convert the indices to a list
+        try:
+            selected_rois_df = pd.read_csv(selected_rois_csv, index_col=0)
+            selected_rois = list(selected_rois_df.index)
+            roi_names = selected_rois_df[roi_column_name].values
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Selected ROIs file not found at: {selected_rois_csv}")
+        except KeyError:
+            raise KeyError(f"'{roi_column_name}' column not found in the selected ROIs file: {selected_rois_csv}")
+
+        # Prepare a DataFrame for storing all subjects' FC values
+        df_all_fc = pd.DataFrame(index=subjects, columns=[f"{roi1}-{roi2}" for roi1, roi2 in combinations(roi_names, 2)])
+
+        # Insert the FC values into the DataFrame
+        upper_tri_indices = np.triu_indices(connectivity_matrix.shape[0], k=1)
+        upper_tri_values = connectivity_matrix[upper_tri_indices]
+        df_all_fc.loc[subject_id, :] = upper_tri_values
+
+        # Save the DataFrame to a CSV
+        csv_output_path = output_dir / "group_fc_data.csv"
+        df_all_fc.to_csv(csv_output_path, index_label="SubjectID")
+
+        # Prepare DataFrame for fisher-z transformed scores
+        df_all_fc_fisher_z = pd.DataFrame(index=subjects, columns=[f"{roi1}-{roi2}" for roi1, roi2 in combinations(roi_names, 2)])
+
+        # Insert the Fisher Z-transformed FC values into the DataFrame
+        upper_tri_values_fisher_z = fisher_z_matrix[upper_tri_indices]
+        df_all_fc_fisher_z.loc[subject_id, :] = upper_tri_values_fisher_z
+
+        # Save the DataFrame to a CSV
+        fisher_z_csv_output_path = output_dir / "group_fc_data_fisher_z.csv"
+        df_all_fc_fisher_z.to_csv(fisher_z_csv_output_path, index_label="SubjectID")
 
     return connectivity_matrix
 

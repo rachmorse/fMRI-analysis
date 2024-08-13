@@ -9,6 +9,9 @@
 # Do not ignore requirements file
 !requirements.txt
 
+# Do not ignore selected ROIs file
+!chosen_areas.csv
+
 # Do not ignore Python script files in the root directory
 !*.py
 !README.md

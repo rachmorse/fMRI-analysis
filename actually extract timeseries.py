@@ -11,7 +11,7 @@ from functional_connectivity import *
 
 def process_subject(args):
     """
-    Processes a single subject: extracts timeseries, computes connectivity, saves matrix, and visualizes results.
+    Processes a single subject: extracts timeseries.
     
     Args:
         args (tuple): Contains subject information and configuration parameters.
@@ -48,14 +48,6 @@ def process_subject(args):
     if timeseries is None or timeseries.size == 0:
         print(f"No valid timeseries extracted for subject {subject_id}")
         return
-    
-    # Compute and fetch connectivity matrix
-    connectivity_matrix = compute_functional_connectivity(subject_id, timeseries, output_dir, selected_rois_csv=selected_rois_csv, roi_column_name=roi_column_name, subjects=subjects)
-    
-    # Visualize data
-    visualize_data(subject_id, connectivity_matrix, timeseries, roi_indices)
-    
-    print(f"Processing completed for subject: {subject_id}")
 
 
 def main(ses: str, 

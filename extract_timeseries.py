@@ -4,9 +4,10 @@ import numpy as np
 from nilearn.input_data import NiftiLabelsMasker
 import nibabel as nib
 from datetime import datetime
+from typing import Optional
 from scipy.stats import pearsonr
 
-def extract_timeseries(atlas_file: str, fmri_file: str, mask_type: str, error_log_path: Path) -> np.ndarray:
+def extract_timeseries(atlas_file: str, fmri_file: str, mask_type: str, error_log_path: Path) -> Optional[np.ndarray]:
     """
     Extracts timeseries data from an fMRI BOLD image using an atlas mask,
     considers both 3D and 4D masks, and logs errors to a file.
@@ -53,7 +54,7 @@ def extract_timeseries(atlas_file: str, fmri_file: str, mask_type: str, error_lo
 
     except Exception as e:
         with open(error_log_path, "a") as f:
-            f.write(f"{datetime.now()}\n")
+            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"Error processing atlas {atlas_file} and fMRI {fmri_file}:\n")
             f.write(f"{str(e)}\n\n")
         return None
