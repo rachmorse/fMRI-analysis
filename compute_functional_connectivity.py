@@ -28,7 +28,7 @@ class FC:
 
     def load_timeseries(self, filepath: str, index: int = None) -> np.ndarray:
         """
-        Load timeseries data from a file.
+        Load timeseries data from file.
         
         Args:
             filepath (str): Path to the timeseries file.
