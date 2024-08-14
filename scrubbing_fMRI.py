@@ -6,10 +6,11 @@ import scipy.interpolate
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
+
 def analyze_threshold(data, threshold, total_scans=740, affected_percentage=0.5):
     """
     Analyze and visualize subjects with a high amount of movement using a given FWD threshold (e.g. subjects with higher than X FWD in > Y% of scans).
-    Note - this is to consider what your data look like to help determine the threshold and affected percentage to use for scrubbing. 
+    Note - this is to consider what your data look like to help determine the threshold and affected percentage to use for scrubbing.
 
     Args:
         data (pd.DataFrame): DataFrame containing FWD data.
@@ -20,13 +21,18 @@ def analyze_threshold(data, threshold, total_scans=740, affected_percentage=0.5)
     Returns:
         None
     """
-    moved_subjects_count = (((data > threshold).sum(1) / total_scans) > affected_percentage).sum()
-    print(f"{moved_subjects_count} subjects with more than {affected_percentage * 100}% of scans moved (threshold {threshold})")
+    moved_subjects_count = (
+        ((data > threshold).sum(1) / total_scans) > affected_percentage
+    ).sum()
+    print(
+        f"{moved_subjects_count} subjects with more than {affected_percentage * 100}% of scans moved (threshold {threshold})"
+    )
     plt.hist((data > threshold).sum(1) / total_scans)
     plt.title(f"Distribution of Percentage of Moved Scans (Threshold: {threshold})")
     plt.xlabel("Percentage")
     plt.ylabel("Number of Subjects")
     plt.show()
+
 
 def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate"):
     """
@@ -52,28 +58,32 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
     # Load FWD data
     print("Loading Framewise Displacement data from file:", fwd_file)
     fwd = np.array(pd.read_csv(fwd_file).FramewiseDisplacement)
-    
+
     # Identify timepoints with excessive motion
-    all_tps = np.arange(bold_data.shape[3]) 
+    all_tps = np.arange(bold_data.shape[3])
     correct_tps = all_tps[[False] + list(fwd < threshold)]
     incorrect_tps = all_tps[[False] + list(fwd >= threshold)]
-    correct_bold = bold_data[:, :, :, correct_tps] 
-    
-    print(f"{len(incorrect_tps)} out of {bold_data.shape[3]} scans ({round(len(incorrect_tps) * 100 / bold_data.shape[3], 2)}%) exceed the motion threshold (FWD > {threshold}).")
-    
+    correct_bold = bold_data[:, :, :, correct_tps]
+
+    print(
+        f"{len(incorrect_tps)} out of {bold_data.shape[3]} scans ({round(len(incorrect_tps) * 100 / bold_data.shape[3], 2)}%) exceed the motion threshold (FWD > {threshold})."
+    )
+
     # Start scrubbing based on the method
     if method == "cut":
         # If the method is 'cut', remove the timepoints with excessive motion. Save as scrubbed_data.
         scrubbed_data = correct_bold
         print(f"Removing {len(incorrect_tps)} scans due to excessive motion.")
     elif method == "interpolate":
-        # If the method is 'interpolate', replace the timepoints with excessive motion through interpolation or extrapolation. 
+        # If the method is 'interpolate', replace the timepoints with excessive motion through interpolation or extrapolation.
         scrubbed_data = bold_data.copy()
         # Check if the first or last timepoints are incorrect because if they are, they should be extrapolated
-        if not 1 in incorrect_tps and not bold_data.shape[3] - 1 in incorrect_tps:
+        if 1 not in incorrect_tps and bold_data.shape[3] - 1 not in incorrect_tps:
             print(f"Interpolating {len(incorrect_tps)} scans due to excessive motion.")
             # Perform interpolation when neither the first nor last timepoints are incorrect
-            interpolator = scipy.interpolate.interp1d(correct_tps, correct_bold, axis=3, fill_value="extrapolate") 
+            interpolator = scipy.interpolate.interp1d(
+                correct_tps, correct_bold, axis=3, fill_value="extrapolate"
+            )
             scrubbed_data[:, :, :, incorrect_tps] = interpolator(incorrect_tps)
             print("No scans require extrapolation.")
         else:
@@ -94,14 +104,18 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
                 intrap_idx.remove(bold_data.shape[3] - i)
                 extrap_text.append("right")
                 i += 1
-            
+
             print(f"Interpolating {len(intrap_idx)} scans due to excessive motion.")
             interpolator = scipy.interpolate.interp1d(correct_tps, correct_bold, axis=3)
             scrubbed_data[:, :, :, intrap_idx] = interpolator(intrap_idx)
-            
+
             if extrap_text:
-                print(f"Extrapolating {len(extrap_idx)} scans in the {', '.join(extrap_text)} direction(s) due to motion.")
-                extrapolator = scipy.interpolate.interp1d(correct_tps, correct_bold, fill_value='extrapolate', axis=3)
+                print(
+                    f"Extrapolating {len(extrap_idx)} scans in the {', '.join(extrap_text)} direction(s) due to motion."
+                )
+                extrapolator = scipy.interpolate.interp1d(
+                    correct_tps, correct_bold, fill_value="extrapolate", axis=3
+                )
                 scrubbed_data[:, :, :, extrap_idx] = extrapolator(extrap_idx)
 
     else:
@@ -111,14 +125,24 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
     scrubbed_image = nib.Nifti1Image(scrubbed_data, bold_affine)
     os.makedirs(os.path.dirname(scrubbed_file), exist_ok=True)
     nib.save(scrubbed_image, scrubbed_file)
-    
+
     print(f"Scrubbing complete. Scrubbed image saved to: {scrubbed_file}")
     return 0
 
-def process_subject(subject, ses, root, threshold, output_data, error_log, bold_pattern, scrubbed_pattern):
+
+def process_subject(
+    subject,
+    ses,
+    root,
+    threshold,
+    output_data,
+    error_log,
+    bold_pattern,
+    scrubbed_pattern,
+):
     """
     Process a single subject by scrubbing the BOLD fMRI images based on the FWD.
-    
+
     Args:
         subject (str): Subject ID used to process the BOLD and FWD files.
         ses (str): Session ID.
@@ -128,19 +152,27 @@ def process_subject(subject, ses, root, threshold, output_data, error_log, bold_
         error_log (str): Error log file path.
         bold_pattern (str): Pattern for the BOLD file names.
         scrubbed_pattern (str): Pattern for the scrubbed file names.
-        
+
     Returns:
         None: Saves the scrubbed BOLD file for the subject and logs errors if any occur.
     """
     try:
         fwd_file = os.path.join(root, subject, "native_T1", "framewise_displ.txt")
         bold_file = bold_pattern.format(subject=subject, ses=ses)
-        scrubbed_file = scrubbed_pattern.format(subject=subject, ses=ses, threshold=threshold, output_data=output_data)
+        scrubbed_file = scrubbed_pattern.format(
+            subject=subject, ses=ses, threshold=threshold, output_data=output_data
+        )
 
         print(f"Processing subject: {subject}")
 
         if not os.path.exists(scrubbed_file):
-            scrub(bold_file, fwd_file, scrubbed_file, threshold=threshold, method="interpolate")
+            scrub(
+                bold_file,
+                fwd_file,
+                scrubbed_file,
+                threshold=threshold,
+                method="interpolate",
+            )
         else:
             print("Already scrubbed!")
     except Exception as e:
@@ -148,7 +180,17 @@ def process_subject(subject, ses, root, threshold, output_data, error_log, bold_
         with open(error_log, "a") as f:
             f.write(f"Error processing subject {subject}: {e}\n")
 
-def main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=False):
+
+def main(
+    ses,
+    root,
+    output_data,
+    output_files,
+    threshold,
+    bold_pattern,
+    scrubbed_pattern,
+    multi=False,
+):
     """
     Main function to run this script. This function performs the following steps:
 
@@ -162,7 +204,7 @@ def main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed
         ses (str): Session timepoint.
         root (str): Root directory path.
         output_data (str): Output data directory path (for MRI data).
-        output_files (str): Output files directory path (for error, todo, and FWD CSVs). 
+        output_files (str): Output files directory path (for error, todo, and FWD CSVs).
         threshold (float): Threshold value for scrubbing.
         bold_pattern (str): Pattern for the BOLD file names.
         scrubbed_pattern (str): Pattern for the scrubbed file names.
@@ -191,11 +233,13 @@ def main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed
         if os.path.exists(fwd_file):
             # Read the framewise_displ.txt file
             fwd_data = pd.read_csv(fwd_file)
-            
+
             # Convert each participant's column of data into a list to make it a single row of data instead
-            fwd_series = pd.Series(fwd_data["FramewiseDisplacement"].tolist(), name=subject)
+            fwd_series = pd.Series(
+                fwd_data["FramewiseDisplacement"].tolist(), name=subject
+            )
             fwd_row_df = fwd_series.to_frame().T
-            
+
             # Append the row DataFrame to the main DataFrame
             all_fwd_df = pd.concat([all_fwd_df, fwd_row_df])
         else:
@@ -205,7 +249,7 @@ def main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed
     all_fwd_df.to_csv(all_fwd_path, index=True, header=False)
     print(f"all_fwd.csv has been created at {all_fwd_path}")
 
-    # Visualize what different thresholds would look like in the data 
+    # Visualize what different thresholds would look like in the data
     analyze_threshold(all_fwd_df, 0.2)
     analyze_threshold(all_fwd_df, 0.5)
 
@@ -216,16 +260,40 @@ def main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed
     todo_df = pd.DataFrame(todo, columns=["todo"])
     todo_df.to_csv(os.path.join(output_files, "todo.csv"), index=False)
 
-    # Parallel processing 
+    # Parallel processing
     if multi:
         with Pool(4) as pool:
-            pool.starmap(process_subject, [(subject, ses, root, threshold, output_data, error_log, bold_pattern, scrubbed_pattern) for subject in todo])
+            pool.starmap(
+                process_subject,
+                [
+                    (
+                        subject,
+                        ses,
+                        root,
+                        threshold,
+                        output_data,
+                        error_log,
+                        bold_pattern,
+                        scrubbed_pattern,
+                    )
+                    for subject in todo
+                ],
+            )
     else:
         for subject in todo:
-            process_subject(subject, ses, root, threshold, output_data, error_log, bold_pattern, scrubbed_pattern)
+            process_subject(
+                subject,
+                ses,
+                root,
+                threshold,
+                output_data,
+                error_log,
+                bold_pattern,
+                scrubbed_pattern,
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Change to your paths
     ses = "01"
     root = "/home/rachel/Desktop/fMRI Analysis/processed data"
@@ -233,11 +301,30 @@ if __name__ == '__main__':
     output_files = "/home/rachel/Desktop/fMRI Analysis"
 
     # Define file patterns
-    bold_pattern = os.path.join(root, "{subject}", "native_T1", "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space.nii.gz")
-    scrubbed_pattern = os.path.join("{output_data}", "{subject}", "native_T1", "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space_scrubbed_{threshold}.nii.gz")
+    bold_pattern = os.path.join(
+        root,
+        "{subject}",
+        "native_T1",
+        "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space.nii.gz",
+    )
+    scrubbed_pattern = os.path.join(
+        "{output_data}",
+        "{subject}",
+        "native_T1",
+        "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space_scrubbed_{threshold}.nii.gz",
+    )
 
     # Define threshold for scrubbing
     threshold = 0.5
-    
-    main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=False)
+
+    main(
+        ses,
+        root,
+        output_data,
+        output_files,
+        threshold,
+        bold_pattern,
+        scrubbed_pattern,
+        multi=False,
+    )
     # main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=True)  # Use this for parallel processing
