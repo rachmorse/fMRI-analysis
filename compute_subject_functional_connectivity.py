@@ -1,10 +1,14 @@
 from pathlib import Path
 import pandas as pd
 from multiprocessing import Pool
-from typing import List, Union
+from typing import Optional, Union
 import numpy as np
 from datetime import datetime
-from functional_connectivity import compute_functional_connectivity, visualize_data
+from compute_functional_connectivity import (
+    compute_functional_connectivity,
+    compute_one_to_all_connectivity,
+    visualize_fc_data,
+)
 
 
 def process_subject_functional(args):
@@ -17,14 +21,16 @@ def process_subject_functional(args):
     (
         subject_id,
         output_dir,
-        roi_indices,
+        root_directory,
         selected_rois_csv,
         roi_column_name,
         subjects,
         error_log_path,
+        one_timeseries_index,
+        roi_names,
     ) = args
 
-    timeseries_file = output_dir / f"{subject_id}_timeseries.csv"
+    timeseries_file = root_directory / f"{subject_id}_timeseries.csv"
 
     # Load extracted timeseries
     print(f"--- Processing subject: {subject_id} ---")
@@ -35,7 +41,7 @@ def process_subject_functional(args):
     except FileNotFoundError:
         print(f"Timeseries file not found: {timeseries_file}")
         return
-    except Exception as e: 
+    except Exception as e:
         print(f"Error loading timeseries: {e}")
         with open(error_log_path, "a") as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -45,23 +51,31 @@ def process_subject_functional(args):
 
     if timeseries is None or timeseries.size == 0:
         print(f"No valid timeseries loaded for subject {subject_id}")
-
-    if timeseries is None or timeseries.size == 0:
-        print(f"No valid timeseries loaded for subject {subject_id}")
         return
 
-    # Compute and fetch connectivity matrix
-    connectivity_matrix = compute_functional_connectivity(
-        subject_id,
-        timeseries,
-        output_dir,
+    connectivity_matrix, fisher_z_matrix = compute_functional_connectivity(
+        subject_id=subject_id,
+        timeseries=timeseries,
+        output_dir=output_dir,
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
         subjects=subjects,
     )
 
-    # Visualize data
-    visualize_data(subject_id, connectivity_matrix, timeseries, roi_indices)
+    # Conditionally compute one-to-all connectivity
+    if one_timeseries_index is not None:
+        compute_one_to_all_connectivity(
+            subject_id=subject_id,
+            connectivity_matrix=connectivity_matrix,
+            fisher_z_matrix=fisher_z_matrix,
+            output_dir=output_dir,
+            one_timeseries_index=one_timeseries_index,
+            roi_names=roi_names,
+            all_subjects=subjects,
+        )
+
+    # Visualize data if needed
+    # visualize_fc_data(subject_id, connectivity_matrix)
 
     print(f"Processing completed for subject: {subject_id}")
 
@@ -69,9 +83,10 @@ def process_subject_functional(args):
 def main(
     todo_path: Union[str, Path],
     output_dir: Union[str, Path],
+    root_directory: Union[str, Path],
     selected_rois_csv: Path,
     roi_column_name: str,
-    roi_indices: List[int],
+    one_timeseries_index: Optional[int] = None,
     multi: bool = False,
 ):
     """
@@ -86,10 +101,10 @@ def main(
         output_dir (Union[str, Path]): Path where processed data will be output.
         selected_rois_csv (Path): Path to the selected ROIs CSV.
         roi_column_name (str): Name of the column containing ROI names.
-        roi_indices (List[int]): Indices of ROIs for timeseries visualization.
         multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
     """
     output_dir = Path(output_dir)
+    root_directory = Path(root_directory)
     todo_path = Path(todo_path)
     error_log_path = output_dir / "error_log.txt"  # Define error log path
 
@@ -105,16 +120,31 @@ def main(
 
     print(f"Number of subjects to process: {len(todo)}")
 
+    # Read and define roi_names
+    try:
+        selected_rois_df = pd.read_csv(selected_rois_csv, index_col=0)
+        roi_names = selected_rois_df[roi_column_name].values.tolist()
+    except FileNotFoundError:
+        print(f"Selected ROIs file not found at: {selected_rois_csv}")
+        return
+    except KeyError:
+        print(
+            f"'{roi_column_name}' column not found in the selected ROIs file: {selected_rois_csv}"
+        )
+        return
+
     subjects = todo  # Assign subjects list
     args = [
         (
             subject,
             output_dir,
-            roi_indices,
+            root_directory,
             selected_rois_csv,
             roi_column_name,
             subjects,
             error_log_path,
+            one_timeseries_index,
+            roi_names,
         )
         for subject in todo
     ]
@@ -129,20 +159,22 @@ def main(
 
 if __name__ == "__main__":
     todo_file = Path("/home/rachel/Desktop/fMRI Analysis/todo.csv")
-    output_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76/timeseries")
+    root_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76/timeseries")
+    output_directory = Path(
+        "/home/rachel/Desktop/fMRI Analysis/DK76/connectivity_matrices"
+    )
     selected_rois_csv = Path(
         "/pool/guttmann/laboratori/scripts/BOLD_connectivity/chosen_areas.csv"
     )
     roi_column_name = "LabelName"
 
-    roi_indices = [0]  # ROIs to visualize
-
     main(
         todo_path=todo_file,
         output_dir=output_directory,
+        root_directory=root_directory,
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
-        roi_indices=roi_indices,
+        one_timeseries_index=0,  # Specify the index of the ROI you want to focus on
         multi=False,
     )
 

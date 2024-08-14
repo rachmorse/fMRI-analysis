@@ -4,7 +4,8 @@ import numpy as np
 from nilearn.input_data import NiftiLabelsMasker
 import nibabel as nib
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
+import matplotlib.pyplot as plt
 
 
 def extract_timeseries(
@@ -67,3 +68,26 @@ def extract_timeseries(
             f.write(f"Error processing atlas {atlas_file} and fMRI {fmri_file}:\n")
             f.write(f"{str(e)}\n\n")
         return None
+
+
+def visualize_timeseries(
+    subject_id: str,
+    timeseries: np.ndarray,
+    roi_indices: List[int],
+):
+    """
+    Visualize the timeseries for specified ROIs.
+
+    Args:
+        subject_id (str): Identifier for the subject.
+        timeseries (np.ndarray): The timeseries data to be visualized.
+        roi_indices (List[int]): List of ROI indices to visualize.
+    """
+    # Visualize Timeseries for specified ROIs
+    for idx in roi_indices:
+        plt.figure(figsize=(10, 4))
+        plt.plot(timeseries[:, idx])
+        plt.title(f"Timeseries for ROI {idx} - Subject {subject_id}")
+        plt.xlabel("Time points")
+        plt.ylabel("BOLD signal")
+        plt.show()

@@ -71,45 +71,34 @@ Below is the description and the usage of each script included in this repositor
         - Adjust paths for data input and output.
 
 4. **`extract_timeseries.py`**
-    - **Purpose:** Extracts timeseries data from fMRI BOLD images using the DK atlas in native BOLD space. This script defines the `TimeseriesExtractor` class, which is utilized in the subsequent `extract_subjects_timeseries.py` script to extract and save timeseries data for the selected ROIs for each subject.
-    - **Classes:**
-        -`TimeseriesExtractor`: A dataclass to manage the extraction of timeseries data from BOLD images using atlas masks.
+    - **Purpose:** Extracts timeseries data from fMRI BOLD images using the DK atlas in native BOLD space. This script defines the functions, which are utilized in the subsequent `extract_subjects_timeseries.py` script to extract, save, and visualize (if you want) timeseries data for the selected ROIs for each subject.
     - **Functions:** Each subsequent function is designed to call on the one before it, progressively processing the data step-by-step.
-        - `extract_and_save_timeseries`: Loads the BOLD image for a given subject, uses the subject-specific DK mask to extract the timeseries data, and saves the extracted timeseries to an output file.
-        - `_process_masks_and_extract_timeseries`: Processes the mask and extracts timeseries data from the BOLD image for a given subject.
-        - `_extract_timeseries_from_mask`: Determines the type of mask (3D or 4D) and extracts the timeseries data accordingly. Note - the DK atlas is 3D and 4D processing is not used here.
-        - `_extract_timeseries_from_4d_mask`: Extracts the timeseries from a 4D mask (where each slice represents a different network or region). 
-        - `_extract_timeseries_from_3d_mask`: Extracts the timeseries from a 3D mask (where unique voxel values represent different networks or regions).
-        - `_compute_ROI_timeseries`: Computes the average BOLD signal within an ROI mask slice over time.
+        - `extract_timeseries`: Extracts timeseries data using either a 3D or 4D atlas mask and logs any errors encountered during the process.
+        - `visualize_data`: Visualizes the timeseries data for specified ROIs for a given subject. To enable this feature, uncomment the relevant code in `extract_subjects_timeseries.py`.
 
 5. **`extract_subjects_timeseries.py`**
-    - **Purpose:** Runs the timeseries extraction process for multiple subjects using `TimeseriesExtractor` using the DK atlas masks created in `select_specific_rois.py` to extract and save the timeseries.
+    - **Purpose:** Runs the timeseries extraction process for multiple subjects using the functions from `extract_timeseries.py` and using the DK atlas masks created in `select_specific_rois.py`.
     - **Functions:**
-        - `timeseries_extraction(args)`: Extracts timeseries for an individual subject.
-        - `main(multi)`: Main function to initialize the extractor and process all subjects either sequentially or in parallel.
+        - `process_subject_extract`: Processes a single subject by extracting timeseries data using the atlas mask, saving the timeseries to a file, and optionally visualizing the data if the corresponding code is uncommented.
+        - `main`: Main function to initialize the extractor and process all subjects either sequentially or in parallel.
     - **Notes:**
         - Adjust paths for data input and output (including names for this data), session (`ses`), and threshold. Session and threshold are included to more automatically locate your scrubbed data. 
         - The script supports parallel processing to speed up execution.
 
 6. **`compute_functional_connectivity.py`**
-    - **Purpose:** Computes various functional connectivty metics for subjects from the timeseries data. This script defines the `FC` class, which is utilized in the subsequent `dk_atlas_fc_analysis.py` script to compute functional connectivity.
-    - **Class:** 
-        - `FC`: A dataclass to manage the computation of functional connectivity from the timeseries data.
-        - **Attributes:**
-            - `fisher_ztrans`: Flag for applying Fisher z-transformation. This transformation converts Pearson correlation coefficients into a normally distributed metric.
-        - **Functions:** These functions are used for general FC analysis, and while not all are applied in `dk_atlas_fc_analysis.py`, they provide a comprehensive toolkit for FC calculations. 
-            - `load_timeseries`: Reads timeseries data from a specified file.
-            - `compute_one_to_all`: Computes one-to-all FC, or the connectivity between a specific ROI's timeseries and all other ROIs' timeseries for one or multiple subjects.
-            - `compute_all_to_all`: Computes all-to-all Pearson correlations for one or multiple subjects. For example, if you have `N` ROIs, this computes the correlation for each pair of ROIs, resulting in an `N x N` connectivity matrix. 
-            - `all_to_all_from_img`: Computes all-to-all correlations from BOLD and mask _images_. Calculates connectivity between every voxel that is in the altas mask, resulting in a voxel-wise connectivity matrix.
+    - **Purpose:** Computes various functional connectivty metics for subjects from the timeseries data. This script defines functions, which are used in the subsequent `compute_subject_functional_connectivity.py` script to compute functional connectivity.
+    - **Functions:** These functions are used for general FC analysis, and while not all are applied in `dk_atlas_fc_analysis.py`, they provide a comprehensive toolkit for FC calculations. 
+        - `fisher_transform`: Applies Fisher z-transformation to the correlation coefficients.
+        - `compute_functional_connectivity`: Computes all-to-all correlations for one or multiple subjects. For example, if you have `N` ROIs, this computes the correlation for each pair of ROIs, resulting in an `N x N` connectivity matrix. It then saves both the raw and Fisher Z-transformed matrices and group-level functional connectivity data.
+        - `compute_one_to_all_connectivity`: Optionally computes one-to-all correlations, if you are interested in one ROI in particular. It then saves both the raw and Fisher Z-transformed matrices at the group-level.
+        - `visualize_data`: Visualizes the functional connectivity data for a given subject. To enable this feature, uncomment the relevant code in `compute_subject_functional_connectivity.py`.
 
-7. **`dk_atlas_fc_analysis.py`**
-    - **Purpose:**  Runs the `FC` class from `compute_functional_connectivity.py` to compute and save the FC matrix for a set of subjects using their timeseries data. The script processes timeseries data, computes FC with and without Fisher z-transformation, and saves the results to both pickle and CSV files for further analysis.
+7. **`compute_subject_functional_connectivity.py`**
+    - **Purpose:**  Runs the functions from `compute_functional_connectivity.py` to compute and save the FC matrix for a set of subjects using their timeseries data. The script processes timeseries data, computes FC with and without Fisher z-transformation, and saves the results to CSV files for further analysis.
     - **Functions:**
-        - `compute_and_save_fc`: Computes and saves FC matrices, both Fisher z-transformed and non-Fisher z-transformed.
+        - `process_subject_functional`: Processes a single subject by loading pre-extracted timeseries data, computing the functional connectivity matrix, saving the connectivity matrix, and optionally visualizing the data if the corresponding code is uncommented.
         - `main`: Main function to initialize paths and parameters, retrieve timeseries data, compute FC matrices, and save the results.
     - **Notes:**
-        - This script only calculated FC from all ROIs to all other ROIs. To use the other functions in `compute_functional_connectivity.py`, please write them into this script. 
         - Adjust paths for data input and output (including names for this data). 
         - Ensure the selected ROI names file path is correctly specified.
 

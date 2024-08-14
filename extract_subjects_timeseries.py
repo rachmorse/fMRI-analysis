@@ -1,17 +1,15 @@
 import os
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from multiprocessing import Pool
-from typing import List, Union
-import nibabel as nib
-from datetime import datetime
-from extract_timeseries import *  # Import the functions from the other scripts
-from functional_connectivity import *
+from typing import Union, List
+from extract_timeseries import extract_timeseries, visualize_timeseries
 
 
-def process_subject(args):
+def process_subject_extract(args):
     """
-    Processes a single subject: extracts timeseries, computes connectivity, saves matrix, and visualizes results.
+    Processes a single subject: extracts timeseries and saves it.
 
     Args:
         args (tuple): Contains subject information and configuration parameters.
@@ -23,13 +21,10 @@ def process_subject(args):
         bold_template,
         mask_template,
         masks_root_path,
-        output_dir,
         roi_indices,
+        output_dir,
         mask_type,
         error_log_path,
-        selected_rois_csv,
-        roi_column_name,
-        subjects,
     ) = args
 
     bold_path_template = bold_template.format(
@@ -40,22 +35,7 @@ def process_subject(args):
     fmri_file = Path(bold_path_template)
     atlas_file = masks_root_path / mask_file_template
 
-    # Load BOLD image
     print(f"--- Processing subject: {subject_id} ---")
-    print("Reading BOLD image...")
-    try:
-        bold_img = nib.load(fmri_file).get_fdata()
-        print("BOLD image loaded")
-    except FileNotFoundError:
-        print(f"BOLD file not found: {fmri_file}")
-        return
-    except Exception as e:
-        print(f"Error loading BOLD image: {e}")
-        with open(error_log_path, "a") as f:
-            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"Error loading BOLD image for subject {subject_id}:\n")
-            f.write(f"{str(e)}\n\n")
-        return
 
     # Process masks and extract timeseries
     timeseries = extract_timeseries(atlas_file, fmri_file, mask_type, error_log_path)
@@ -64,18 +44,13 @@ def process_subject(args):
         print(f"No valid timeseries extracted for subject {subject_id}")
         return
 
-    # Compute and fetch connectivity matrix
-    connectivity_matrix = compute_functional_connectivity(
-        subject_id,
-        timeseries,
-        output_dir,
-        selected_rois_csv=selected_rois_csv,
-        roi_column_name=roi_column_name,
-        subjects=subjects,
-    )
+    # Save the extracted timeseries
+    timeseries_output_path = output_dir / f"{subject_id}_timeseries.csv"
+    print(f"Saving extracted timeseries to {timeseries_output_path}")
+    np.savetxt(timeseries_output_path, timeseries, delimiter=",")
 
-    # Visualize data
-    visualize_data(subject_id, connectivity_matrix, timeseries, roi_indices)
+    # Run this line if you want to visualize the data
+    # visualize_timeseries(subject_id, timeseries, roi_indices)
 
     print(f"Processing completed for subject: {subject_id}")
 
@@ -88,10 +63,8 @@ def main(
     output_dir: Union[str, Path],
     bold_template: str,
     mask_template: str,
-    roi_indices: List[int],
     mask_type: str,
-    selected_rois_csv: Path,
-    roi_column_name: str,
+    roi_indices: List[int],
     multi: bool = False,
 ):
     """
@@ -110,8 +83,6 @@ def main(
         mask_template (str): Template for the name of mask files.
         roi_indices (List[int]): Indices of ROIs for timeseries visualization.
         mask_type (str): Type of the mask ("3D" or "4D").
-        selected_rois_csv (Path): Path to the selected ROIs CSV.
-        roi_column_name (str): Name of the column containing ROI names.
         multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
     """
     output_dir = Path(output_dir)
@@ -131,7 +102,6 @@ def main(
 
     print(f"Number of subjects to process: {len(todo)}")
 
-    subjects = todo  # Assign subjects list
     args = [
         (
             subject,
@@ -140,23 +110,20 @@ def main(
             bold_template,
             mask_template,
             masks_root_path,
-            output_dir,
             roi_indices,
+            output_dir,
             mask_type,
             error_log_path,
-            selected_rois_csv,
-            roi_column_name,
-            subjects,
         )
         for subject in todo
     ]
 
     if multi:
         with Pool(6) as pool:
-            pool.map(process_subject, args)
+            pool.map(process_subject_extract, args)
     else:
         for arg in args:
-            process_subject(arg)
+            process_subject_extract(arg)
 
 
 if __name__ == "__main__":
@@ -164,14 +131,10 @@ if __name__ == "__main__":
     threshold = "0.5"
     todo_file = Path("/home/rachel/Desktop/fMRI Analysis/todo.csv")
     masks_root_path = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
-    output_directory = Path(
-        "/home/rachel/Desktop/fMRI Analysis/DK76/connectivity_matrices"
-    )
+    output_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76/timeseries")
     root_directory = Path("/home/rachel/Desktop/fMRI Analysis/Scrubbed data")
-    selected_rois_csv = Path(
-        "/pool/guttmann/laboratori/scripts/BOLD_connectivity/chosen_areas.csv"
-    )
-    roi_column_name = "LabelName"
+
+    roi_indices = [0]  # ROIs to visualize
 
     bold_template = os.path.join(
         root_directory,
@@ -181,7 +144,6 @@ if __name__ == "__main__":
     )
     mask_template = "{subject_id}_DK76_BOLD-nativespace_selected_ROIs.nii.gz"
 
-    roi_indices = [0]  # ROIs to visualize
     mask_type = "3D"  # or "4D"
 
     main(
@@ -192,12 +154,10 @@ if __name__ == "__main__":
         output_dir=output_directory,
         bold_template=bold_template,
         mask_template=mask_template,
-        roi_indices=roi_indices,
         mask_type=mask_type,
-        selected_rois_csv=selected_rois_csv,
-        roi_column_name=roi_column_name,
+        roi_indices=roi_indices,
         multi=False,
     )
 
     # Uncomment this line to enable parallel processing
-    # main(ses=ses, threshold=threshold, todo_path=todo_file, masks_root_path=masks_root_path, output_dir=output_directory, bold_template=bold_template, mask_template=mask_template, roi_indices=roi_indices, mask_type=mask_type, selected_rois_csv=selected_rois_csv, roi_column_name=roi_column_name, multi=True)
+    # main(ses=ses, threshold=threshold, todo_path=todo_file, masks_root_path=masks_root_path, output_dir=output_directory, bold_template=bold_template, mask_template=mask_template, mask_type=mask_type, roi_indices=roi_indices, multi=True)
