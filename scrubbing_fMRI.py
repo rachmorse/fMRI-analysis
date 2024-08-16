@@ -296,7 +296,7 @@ def main(
 if __name__ == "__main__":
     # Change to your paths
     ses = "01"
-    root = "/home/rachel/Desktop/fMRI Analysis/processed data"
+    root = "/home/rachel/Desktop/fMRI Analysis/subjects/processed data"
     output_data = "/home/rachel/Desktop/fMRI Analysis/Scrubbed data"
     output_files = "/home/rachel/Desktop/fMRI Analysis"
 
@@ -327,4 +327,6 @@ if __name__ == "__main__":
         scrubbed_pattern,
         multi=False,
     )
-    # main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=True)  # Use this for parallel processing
+
+    # Uncomment this line to enable parallel processing
+    # main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=True)  

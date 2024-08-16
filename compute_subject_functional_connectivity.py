@@ -1,6 +1,5 @@
 from pathlib import Path
 import pandas as pd
-from multiprocessing import Pool
 from typing import Optional, Union
 import numpy as np
 from datetime import datetime
@@ -88,22 +87,19 @@ def main(
     selected_rois_csv: Path,
     roi_column_name: str,
     one_timeseries_index: Optional[Union[int,str]] = None,
-    multi: bool = False,
 ):
     """
     Main function to run the script.
 
     This function reads the pre-extracted timeseries data for each subject,
-    computes the functional connectivity matrices for all subjects, either
-    sequentially or in parallel based on the multi flag.
+    computes the functional connectivity matrices for all subjects.
 
     Args:
         todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
         output_dir (Union[str, Path]): Path where processed data will be output.
         selected_rois_csv (Path): Path to the selected ROIs CSV.
         roi_column_name (str): Name of the column containing ROI names.
-        multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
-    """
+=    """
     
     output_dir = Path(output_dir)
     root_directory = Path(root_directory)
@@ -159,12 +155,8 @@ def main(
         for subject in todo
     ]
 
-    if multi:
-        with Pool(6) as pool:
-            pool.map(process_subject_functional, args)
-    else:
-        for arg in args:
-            process_subject_functional(arg)
+    for arg in args:
+        process_subject_functional(arg)
 
 
 if __name__ == "__main__":
@@ -186,8 +178,4 @@ if __name__ == "__main__":
         roi_column_name=roi_column_name,
         # one_timeseries_index=None,  # Unomment this line and comment the line below to not compute one-to-all connectivity
         one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on 
-        multi=False,
     )
-
-    # Uncomment this line to enable parallel processing
-    # main(todo_path=todo_file, output_dir=output_directory, selected_rois_csv=selected_rois_csv, roi_column_name=roi_column_name, roi_indices=roi_indices, multi=True)
