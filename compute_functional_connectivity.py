@@ -30,7 +30,7 @@ def compute_functional_connectivity(
 ) -> np.ndarray:
     """
     Compute the connectivity matrix from the extracted timeseries data and save both
-    the raw and Fisher z-transformed connectivity matrices. Optionally, compute and save one-to-all correlations.
+    the raw and Fisher z-transformed connectivity matrices. 
     Additionally, save group CSV with FC data for all the ROIs with the ROI names.
 
     Args:
@@ -75,10 +75,13 @@ def compute_functional_connectivity(
             raise KeyError(
                 f"'{roi_column_name}' column not found in the selected ROIs file: {selected_rois_csv}"
             )
+        
+        columns = [f"{roi1}-{roi2}" for roi1, roi2 in combinations(roi_names, 2)]
 
+        # Initialize a DataFrame to store the FC data
         df_all_fc = pd.DataFrame(
-            index=subjects,
-            columns=[f"{roi1}-{roi2}" for roi1, roi2 in combinations(roi_names, 2)],
+            index=[subject_id],
+            columns=columns,
         )
 
         upper_tri_indices = np.triu_indices(connectivity_matrix.shape[0], k=1)
@@ -86,18 +89,30 @@ def compute_functional_connectivity(
         df_all_fc.loc[subject_id, :] = upper_tri_values
 
         csv_output_path = output_dir / "all_fc_data.csv"
-        df_all_fc.to_csv(csv_output_path, index_label="SubjectID")
 
+        df_all_fc.to_csv(
+            csv_output_path, 
+            mode="a",
+            header=not csv_output_path.exists(),
+            index_label="SubjectID",
+        )
+
+        # Initialize a DataFrame to store the fisher z-transformed FC data      
         df_all_fc_fisher_z = pd.DataFrame(
-            index=subjects,
-            columns=[f"{roi1}-{roi2}" for roi1, roi2 in combinations(roi_names, 2)],
+            index=[subject_id],
+            columns=columns,
         )
 
         upper_tri_values_fisher_z = fisher_z_matrix[upper_tri_indices]
         df_all_fc_fisher_z.loc[subject_id, :] = upper_tri_values_fisher_z
 
         fisher_z_csv_output_path = output_dir / "all_fc_data_fisher_z.csv"
-        df_all_fc_fisher_z.to_csv(fisher_z_csv_output_path, index_label="SubjectID")
+        df_all_fc_fisher_z.to_csv(
+            fisher_z_csv_output_path, 
+            mode="a",
+            header=not fisher_z_csv_output_path.exists(),
+            index_label="SubjectID"
+        )
 
     return connectivity_matrix, fisher_z_matrix
 
@@ -109,7 +124,7 @@ def compute_one_to_all_connectivity(
     output_dir: Path,
     one_timeseries_index: int,
     roi_names: List[str],
-    all_subjects: List[str],
+    subjects: List[str],
 ):
     """
     Compute and save the one-to-all connectivity for a specified ROI.
@@ -121,17 +136,29 @@ def compute_one_to_all_connectivity(
         output_dir (Path): Directory where the connectivity matrices will be saved.
         one_timeseries_index (int): Index of the timeseries for computing one-to-all correlations.
         roi_names (List[str]): List of ROI names.
-        all_subjects (List[str]): List of all subjects for grouping.
+        subjects (List[str]): List of all subjects for grouping.
     """
     if (
         isinstance(one_timeseries_index, int)
         and 0 <= one_timeseries_index < connectivity_matrix.shape[0]
     ):
-        one_to_all_raw = connectivity_matrix[one_timeseries_index, :]
-        one_to_all_fisher_z = fisher_z_matrix[one_timeseries_index, :]
+        one_to_all_raw_no_mask = connectivity_matrix[one_timeseries_index, :]
+        one_to_all_fisher_z_no_mask = fisher_z_matrix[one_timeseries_index, :]
 
-        columns = [f"{roi_names[one_timeseries_index]}-{roi}" for roi in roi_names]
+        # Create a mask to exclude when the ROI connects to itself (diagonal) which is manually set to 0
+        mask = np.arange(connectivity_matrix.shape[0]) != one_timeseries_index
+        mask_fisher_z = np.arange(fisher_z_matrix.shape[0]) != one_timeseries_index
 
+        # Apply the mask to filter out self-connectivity
+        one_to_all_raw = one_to_all_raw_no_mask[mask]
+        one_to_all_fisher_z = one_to_all_fisher_z_no_mask[mask_fisher_z]
+
+        columns = [
+            f"{roi_names[one_timeseries_index]}-{roi}" 
+            for roi in roi_names 
+            if roi != roi_names[one_timeseries_index] # Exclude self-connectivity 
+        ]
+    
         # Prepare the one-to-all DataFrame
         one_to_all_df = pd.DataFrame(
             index=[subject_id],
@@ -143,7 +170,7 @@ def compute_one_to_all_connectivity(
 
         # Save the one-to-all DataFrame for all subjects in append mode
         one_to_all_csv_output_path = (
-            output_dir / f"ROI-{roi_names[one_timeseries_index]}_group_fc_data.csv"
+            output_dir / f"{roi_names[one_timeseries_index]}_fc_data.csv"
         )
         one_to_all_df.to_csv(
             one_to_all_csv_output_path,
@@ -164,7 +191,7 @@ def compute_one_to_all_connectivity(
         # Save the one-to-all Fisher z DataFrame for all subjects in append mode
         one_to_all_fisher_z_csv_output_path = (
             output_dir
-            / f"ROI-{roi_names[one_timeseries_index]}_group_fc_data_fisher_z.csv"
+            / f"{roi_names[one_timeseries_index]}_fc_data_fisher_z.csv"
         )
         one_to_all_fisher_z_df.to_csv(
             one_to_all_fisher_z_csv_output_path,

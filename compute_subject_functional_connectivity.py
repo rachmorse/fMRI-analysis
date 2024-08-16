@@ -13,7 +13,8 @@ from compute_functional_connectivity import (
 
 def process_subject_functional(args):
     """
-    Processes a single subject: loads pre-extracted timeseries, computes connectivity, saves matrix, and visualizes results.
+    Processes a single subject: loads pre-extracted timeseries, computes connectivity, 
+    saves matrix, and optionally, visualizes results.
 
     Args:
         args (tuple): Contains subject information and configuration parameters.
@@ -71,7 +72,7 @@ def process_subject_functional(args):
             output_dir=output_dir,
             one_timeseries_index=one_timeseries_index,
             roi_names=roi_names,
-            all_subjects=subjects,
+            subjects=subjects,
         )
 
     # Visualize data if needed
@@ -86,7 +87,7 @@ def main(
     root_directory: Union[str, Path],
     selected_rois_csv: Path,
     roi_column_name: str,
-    one_timeseries_index: Optional[int] = None,
+    one_timeseries_index: Optional[Union[int,str]] = None,
     multi: bool = False,
 ):
     """
@@ -103,6 +104,7 @@ def main(
         roi_column_name (str): Name of the column containing ROI names.
         multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
     """
+    
     output_dir = Path(output_dir)
     root_directory = Path(root_directory)
     todo_path = Path(todo_path)
@@ -132,6 +134,14 @@ def main(
             f"'{roi_column_name}' column not found in the selected ROIs file: {selected_rois_csv}"
         )
         return
+    
+    # Map ROI name to index 
+    if isinstance(one_timeseries_index, str):
+        if one_timeseries_index in roi_names:
+            one_timeseries_index = roi_names.index(one_timeseries_index)
+        else:
+            print(f"ROI name '{one_timeseries_index}' not found in ROI names list.")
+            return
 
     subjects = todo  # Assign subjects list
     args = [
@@ -174,7 +184,7 @@ if __name__ == "__main__":
         root_directory=root_directory,
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
-        one_timeseries_index=0,  # Specify the index of the ROI you want to focus on
+        one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on 
         multi=False,
     )
 
