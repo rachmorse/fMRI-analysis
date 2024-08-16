@@ -77,7 +77,7 @@ Below is the description and the usage of each script included in this repositor
         - `visualize_data`: Visualizes the timeseries data for the ROIs for a given subject. To enable this feature, uncomment the relevant code in `extract_subjects_timeseries.py`.
 
 5. **`extract_subjects_timeseries.py`**
-    - **Purpose:** Runs the timeseries extraction process for multiple subjects using the functions from `extract_timeseries.py` and using the DK atlas masks created in `select_specific_rois.py`.
+    - **Purpose:** Runs the timeseries extraction process for multiple subjects using the functions from `extract_timeseries.py` and the DK atlas masks created in `select_specific_rois.py`.
     - **Functions:**
         - `process_subject_extract`: Processes a single subject by extracting timeseries data using the atlas mask, saving the timeseries to a file, and optionally visualizing the data if the corresponding code is uncommented.
         - `main`: Main function to initialize the extractor and process all subjects either sequentially or in parallel.
@@ -86,7 +86,7 @@ Below is the description and the usage of each script included in this repositor
         - The script supports parallel processing to speed up execution.
 
 6. **`compute_functional_connectivity.py`**
-    - **Purpose:** Computes various functional connectivty metics for subjects from the timeseries data. This script defines functions, which are used in the subsequent `compute_subject_functional_connectivity.py`.
+    - **Purpose:** Computes various functional connectivity metrics for subjects from the timeseries data. This script defines functions, which are used in the subsequent `compute_subject_functional_connectivity.py`.
     - **Functions:** 
         - `fisher_transform`: Applies Fisher z-transformation to the correlation coefficients.
         - `compute_functional_connectivity`: Computes all-to-all correlations for one or multiple subjects. For example, if you have `N` ROIs, this computes the correlation for each pair of ROIs, resulting in an `N x N` connectivity matrix. It then saves both the raw and Fisher Z-transformed connectivity data in one CSV for all subjects.
@@ -103,7 +103,7 @@ Below is the description and the usage of each script included in this repositor
         - Ensure the selected ROI names file path is correctly specified.
 
 ## Setup
-- Ensure the requirements are installed
+- Ensure the requirements are installed.
     ```bash
     pip install -r requirements.txt
     ```
