@@ -75,7 +75,7 @@ def process_subject_functional(args):
             subjects=subjects,
         )
 
-    # Visualize data if needed
+    # Visualize data if needed by uncommenting the line below
     # visualize_fc_data(subject_id, connectivity_matrix)
 
     print(f"Processing completed for subject: {subject_id}")
@@ -184,6 +184,7 @@ if __name__ == "__main__":
         root_directory=root_directory,
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
+        # one_timeseries_index=None,  # Unomment this line and comment the line below to not compute one-to-all connectivity
         one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on 
         multi=False,
     )

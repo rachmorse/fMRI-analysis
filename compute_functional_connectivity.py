@@ -53,16 +53,6 @@ def compute_functional_connectivity(
 
     fisher_z_matrix = fisher_transform(connectivity_matrix)
 
-    # Save indivudual connectivity matrices
-    # output_file_raw = output_dir / f"{subject_id}_connectivity.csv"
-    # output_file_fisher_z = output_dir / f"{subject_id}_connectivity_fisher_z.csv"
-
-    # print(f"Saving raw connectivity matrix to {output_file_raw}")
-    # np.savetxt(output_file_raw, connectivity_matrix, delimiter=",")
-
-    # print(f"Saving Fisher z-transformed connectivity matrix to {output_file_fisher_z}")
-    # np.savetxt(output_file_fisher_z, fisher_z_matrix, delimiter=",")
-
     if selected_rois_csv and roi_column_name and subjects:
         try:
             selected_rois_df = pd.read_csv(selected_rois_csv, index_col=0)
