@@ -13,10 +13,23 @@ from compute_functional_connectivity import (
 def process_subject_functional(args):
     """
     Processes a single subject: loads pre-extracted timeseries, computes connectivity,
-    saves matrix, and optionally, visualizes results.
+    saves the connectivity matrix, and optionally, visualizes the matrix.
 
     Args:
-        args (tuple): Contains subject information and configuration parameters.
+        args (tuple): Contains the following:
+            subject_id (str): Subject ID.
+            output_dir (Path): Path to the directory where output data is saved.
+            root_directory (Path): Root directory for the timeseries data.
+            selected_rois_csv (Path): Path to the selected ROIs CSV.
+            roi_column_name (str): Name of the column containing ROI names.
+            subjects (list): List of all subjects to be processed.
+            error_log_path (Path): Path to the error log file.
+            one_timeseries_index (Optional[Union[int, str]]): Index or name of the ROI to focus on (optional).
+            roi_names (list): List of all ROI names.   
+
+    Raises:
+        FileNotFoundError: If the timeseries file is not found.
+        Exception: If an error occurs while loading the timeseries data 
     """
     (
         subject_id,
@@ -53,6 +66,7 @@ def process_subject_functional(args):
         print(f"No valid timeseries loaded for subject {subject_id}")
         return
 
+    # Compute functional connectivity
     connectivity_matrix, fisher_z_matrix = compute_functional_connectivity(
         subject_id=subject_id,
         timeseries=timeseries,
@@ -74,7 +88,7 @@ def process_subject_functional(args):
             subjects=subjects,
         )
 
-    # Visualize data if needed by uncommenting the line below
+    # Visualize data if you would like by uncommenting the line below
     # visualize_fc_data(subject_id, connectivity_matrix)
 
     print(f"Processing completed for subject: {subject_id}")
@@ -97,9 +111,15 @@ def main(
         Args:
             todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
             output_dir (Union[str, Path]): Path where processed data will be output.
+            root_directory (Union[str, Path]): Root directory for the timeseries data.
             selected_rois_csv (Path): Path to the selected ROIs CSV.
             roi_column_name (str): Name of the column containing ROI names.
-    ="""
+            one_timeseries_index (Optional[Union[int, str]]): Index or name of the ROI to focus on for one-to-all connectivity (optional).
+
+        Raises:
+            FileNotFoundError: If the selected ROIs file is not found.
+            KeyError: If the specified column name is not found in the selected ROIs file
+    """
 
     output_dir = Path(output_dir)
     root_directory = Path(root_directory)
@@ -131,7 +151,7 @@ def main(
         )
         return
 
-    # Map ROI name to index
+    # Map ROI names to the corresponding index
     if isinstance(one_timeseries_index, str):
         if one_timeseries_index in roi_names:
             one_timeseries_index = roi_names.index(one_timeseries_index)
@@ -177,5 +197,5 @@ if __name__ == "__main__":
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
         # one_timeseries_index=None,  # Unomment this line and comment the line below to not compute one-to-all connectivity
-        one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on
+        one_timeseries_index="Right-Hippocampus",  # Specify the name or index of the ROI you want to focus on
     )

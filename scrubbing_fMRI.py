@@ -17,9 +17,6 @@ def analyze_threshold(data, threshold, total_scans=740, affected_percentage=0.5)
         threshold (float): The FWD threshold to be compared with.
         total_scans (int, optional): The total number of scans per subject. Default is 740.
         affected_percentage (float, optional): The percentage of affected scans. Default is 50%.
-
-    Returns:
-        None
     """
     moved_subjects_count = (
         ((data > threshold).sum(1) / total_scans) > affected_percentage
@@ -45,8 +42,8 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
         threshold (float, optional): Threshold for FWD above which scans are considered moved. Default is 0.5 FWD.
         method (str, optional): Method for handling moved scans. Either 'cut' to remove or 'interpolate' to replace. Default is 'interpolate'.
 
-    Returns:
-        int: 0 if the function executes successfully.
+    Raises:
+        Exception: If an unknown method is specified.
     """
 
     # Load BOLD image data
@@ -127,8 +124,6 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
     nib.save(scrubbed_image, scrubbed_file)
 
     print(f"Scrubbing complete. Scrubbed image saved to: {scrubbed_file}")
-    return 0
-
 
 def process_subject(
     subject,
@@ -141,7 +136,8 @@ def process_subject(
     scrubbed_pattern,
 ):
     """
-    Process a single subject by scrubbing the BOLD fMRI images based on the FWD.
+    Processes a single subject by scrubbing the BOLD fMRI images based on the FWD.
+    Saves the scrubbed BOLD file for the subject and logs errors if any occur.
 
     Args:
         subject (str): Subject ID used to process the BOLD and FWD files.
@@ -152,9 +148,9 @@ def process_subject(
         error_log (str): Error log file path.
         bold_pattern (str): Pattern for the BOLD file names.
         scrubbed_pattern (str): Pattern for the scrubbed file names.
-
-    Returns:
-        None: Saves the scrubbed BOLD file for the subject and logs errors if any occur.
+    
+    Raises:
+        Exception: If any error occurs during the processing of the subject.
     """
     try:
         fwd_file = os.path.join(root, subject, "native_T1", "framewise_displ.txt")

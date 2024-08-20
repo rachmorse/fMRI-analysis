@@ -23,6 +23,10 @@ def extract_timeseries(
 
     Returns:
         np.ndarray: Extracted timeseries data, or None if an error occurred.
+
+    Raises:
+        FileNotFoundError: If the fMRI or atlas file is not found.
+        ValueError: If the mask type is not recognized.
     """
     try:
         if not os.path.exists(fmri_file):
