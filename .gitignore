@@ -1,23 +1,16 @@
-# Have the repository contain only the scripts
-
 # Ignore everything
 *
 
 # Do not ignore .gitignore file
 !.gitignore
 
-# Do not ignore requirements file
+# Do not ignore these files
 !requirements.txt
-
-# Do not ignore selected ROIs file
 !chosen_areas.csv
-
-# Do not ignore Python script files in the root directory
-!*.py
 !README.md
 
-# Ignore install FreeSurfer script
-install FreeSurfer.py
+# Do not ignore Python scripts 
+!*.py
 
-# Ignore compute_functional_connectivity_test script
-compute_functional_connectivity_test.py
+# Except do ignore install FreeSurfer script
+install FreeSurfer.py
