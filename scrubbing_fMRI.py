@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 def analyze_threshold(data, threshold, total_scans=740, affected_percentage=0.5):
     """
-    Analyze and visualize subjects with a high amount of movement using a given FWD threshold (e.g. subjects with higher than X FWD in > Y% of scans).
+    Analyze and visualize subjects with a high amount of movement using a given FWD threshold (e.g. subjects with > X FWD in > Y% of scans).
     Note - this is to consider what your data look like to help determine the threshold and affected percentage to use for scrubbing.
 
     Args:
@@ -145,7 +145,7 @@ def process_subject(
 
     Args:
         subject (str): Subject ID used to process the BOLD and FWD files.
-        ses (str): Session ID.
+        ses (str): Session (timepoint).
         root (str): Root directory path.
         threshold (float): Threshold value for scrubbing.
         output_data (str): Output data directory path.
@@ -194,14 +194,17 @@ def main(
     """
     Main function to run this script. This function performs the following steps:
 
-    1. Defines session timepoint, threshold, and directories for data input and output.
-    2. Concatenates all `framewise_displ.txt` files for each subject into a single DataFrame.
+    1. Defines session, threshold, and directories for data input and output.
+    2. Iterates over all subjects in the root directory to concatenate their `framewise_displ.txt` files into a single DataFrame.
     3. Saves the concatenated DataFrame to `all_fwd.csv`.
     4. Visualizes data thresholds using the `analyze_threshold` function.
-    5. Scrubs the BOLD images by either serial or parallel processing of subjects.
+    5. Generates a list of subjects to be processed and saves it as `todo.csv`.
+    6. Scrubs the BOLD images by either serial or parallel processing of subjects.
+    7. Saves the scrubbed BOLD images to the output directory.
+    8. Logs errors to `scrubbing_errors.txt`.
 
     Args:
-        ses (str): Session timepoint.
+        ses (str): Session (timepoint).
         root (str): Root directory path.
         output_data (str): Output data directory path (for MRI data).
         output_files (str): Output files directory path (for error, todo, and FWD CSVs).
@@ -209,11 +212,6 @@ def main(
         bold_pattern (str): Pattern for the BOLD file names.
         scrubbed_pattern (str): Pattern for the scrubbed file names.
         multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
-
-    Outputs:
-        - A concatenated DataFrame of framewise displacement (`all_fwd.csv`)
-        - A list of subjects to be processed (`todo.csv`)
-        - Various error logs and outputs depending on the scrubbing process.
 
     Raises:
         Exception: If any required file or directory is not found.
@@ -294,8 +292,9 @@ def main(
 
 
 if __name__ == "__main__":
-    # Change to your paths
+    # Change to your paths and settings
     ses = "01"
+    threshold = 0.5
     root = "/home/rachel/Desktop/fMRI Analysis/subjects/processed data"
     output_data = "/home/rachel/Desktop/fMRI Analysis/Scrubbed data"
     output_files = "/home/rachel/Desktop/fMRI Analysis"
@@ -312,10 +311,7 @@ if __name__ == "__main__":
         "{subject}",
         "native_T1",
         "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space_scrubbed_{threshold}.nii.gz",
-    )
-
-    # Define threshold for scrubbing
-    threshold = 0.5
+    )    
 
     main(
         ses,

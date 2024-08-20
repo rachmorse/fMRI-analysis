@@ -12,7 +12,7 @@ from compute_functional_connectivity import (
 
 def process_subject_functional(args):
     """
-    Processes a single subject: loads pre-extracted timeseries, computes connectivity, 
+    Processes a single subject: loads pre-extracted timeseries, computes connectivity,
     saves matrix, and optionally, visualizes results.
 
     Args:
@@ -86,21 +86,21 @@ def main(
     root_directory: Union[str, Path],
     selected_rois_csv: Path,
     roi_column_name: str,
-    one_timeseries_index: Optional[Union[int,str]] = None,
+    one_timeseries_index: Optional[Union[int, str]] = None,
 ):
     """
-    Main function to run the script.
+        Main function to run the script.
 
-    This function reads the pre-extracted timeseries data for each subject,
-    computes the functional connectivity matrices for all subjects.
+        This function reads the pre-extracted timeseries data for each subject,
+        computes the functional connectivity matrices for all subjects.
 
-    Args:
-        todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
-        output_dir (Union[str, Path]): Path where processed data will be output.
-        selected_rois_csv (Path): Path to the selected ROIs CSV.
-        roi_column_name (str): Name of the column containing ROI names.
-=    """
-    
+        Args:
+            todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
+            output_dir (Union[str, Path]): Path where processed data will be output.
+            selected_rois_csv (Path): Path to the selected ROIs CSV.
+            roi_column_name (str): Name of the column containing ROI names.
+    ="""
+
     output_dir = Path(output_dir)
     root_directory = Path(root_directory)
     todo_path = Path(todo_path)
@@ -130,8 +130,8 @@ def main(
             f"'{roi_column_name}' column not found in the selected ROIs file: {selected_rois_csv}"
         )
         return
-    
-    # Map ROI name to index 
+
+    # Map ROI name to index
     if isinstance(one_timeseries_index, str):
         if one_timeseries_index in roi_names:
             one_timeseries_index = roi_names.index(one_timeseries_index)
@@ -177,5 +177,5 @@ if __name__ == "__main__":
         selected_rois_csv=selected_rois_csv,
         roi_column_name=roi_column_name,
         # one_timeseries_index=None,  # Unomment this line and comment the line below to not compute one-to-all connectivity
-        one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on 
+        one_timeseries_index="Right-Hippocampus",  # Specify the index of the ROI you want to focus on
     )

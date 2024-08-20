@@ -15,17 +15,11 @@ def process_subject(
     session: str,
 ):
     """
-    Process an individual subject to create DK atlas in their BOLD image space.
+    Process an individual subject to create the DK atlas in their BOLD image space.
 
     Args:
-        subject_id (str): Subject ID
-        freesurfer_folder (Path): Path to the FreeSurfer recon-all folder.
-        fmri_folder (Path): Path to the fMRI preprocessed folder.
-        output_folder (Path): Path to the output folder.
-        mov_template (str): Path / template for the input file (e.g. DK atlas).
-        targ_template (str): Path / template for the output file (e.g. fMRI image).
-        output_template (str): Path / template for the output file (e.g. DK atlas transformed to fMRI image).
-        session (str): Timepoint.
+        See args in the `main` function, with the addition of:
+        subject_id (str): Subject ID.
 
     Raises:
         Exception: If any subprocess command fails or if required files for a subject are missing.
@@ -85,10 +79,10 @@ def main(
         output_folder (Path): Path to the output folder.
         fmri_folder (Path): Path to the fMRI preprocessed folder.
         mov_template (str): Path / template for the input file (e.g. DK atlas).
-        targ_template (str): Path / template for the output file (e.g. fMRI image).
+        targ_template (str): Path / template for the target file (e.g. fMRI image).
         output_template (str): Path / template for the output file (e.g. DK atlas transformed to fMRI image).
         todo_file (Path): Path to the todo file (created in scrubbing_fMRI.py) with subject IDs to be processed.
-        session (str): Timepoint.
+        session (str): Session (timepoint).
 
     Raises:
         FileNotFoundError: If the `todo_file` does not exist.

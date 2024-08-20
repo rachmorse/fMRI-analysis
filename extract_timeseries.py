@@ -12,8 +12,8 @@ def extract_timeseries(
     atlas_file: str, fmri_file: str, mask_type: str, error_log_path: Path
 ) -> Optional[np.ndarray]:
     """
-    Extracts timeseries data from an fMRI BOLD image using an atlas mask,
-    considers both 3D and 4D masks, and logs errors to a file.
+    Extracts timeseries data from a BOLD image using an atlas mask,
+    considers both 3D and 4D atlases, and logs errors to a file.
 
     Args:
         atlas_file (str): Path to the atlas file (mask).
@@ -79,7 +79,7 @@ def visualize_timeseries(
     Visualize the timeseries for specified ROIs.
 
     Args:
-        subject_id (str): Identifier for the subject.
+        subject_id (str): Subject ID.
         timeseries (np.ndarray): The timeseries data to be visualized.
         roi_indices (List[int]): List of ROI indices to visualize.
     """

@@ -10,9 +10,11 @@ from extract_timeseries import extract_timeseries, visualize_timeseries
 def process_subject_extract(args):
     """
     Processes a single subject: extracts timeseries and saves it.
+    Optionally, visualizes the timeseries data.
 
     Args:
-        args (tuple): Contains subject information and configuration parameters.
+        args (tuple): See args in the `main` function, with the addition of:
+        subject_id (str): Subject ID.
     """
     (
         subject_id,
@@ -74,14 +76,15 @@ def main(
     data either sequentially or in parallel based on the multi flag.
 
     Args:
-        ses (str): Session timepoint.
+        ses (str): Session (timepoint).
         threshold (float): Threshold value for scrubbing.
         todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
         masks_root_path (Union[str, Path]): Path where DK select-ROI masks are stored.
+        error_log_path (Union[str, Path]): Path to log the error file.
         output_dir (Union[str, Path]): Path where processed data will be output.
         bold_template (str): Path / template for the location of BOLD data.
         mask_template (str): Template for the name of mask files.
-        roi_indices (List[int]): Indices of ROIs for timeseries visualization.
+        roi_indices (List[int]): ROI indices for timeseries visualization (e.g. add the index for the ROI/s you want to visualize).
         mask_type (str): Type of the mask ("3D" or "4D").
         multi (bool): If True, enables parallel processing using multiprocessing. Defaults to False.
     """
