@@ -11,9 +11,9 @@ For functional connectivity analysis with the [Desikan-Killiany (DK) Atlas](http
 
 ## Overview
 
-This repository contains several Python scripts to carry out fMRI scrubbing, DK atlas registration, ROI selection, timeseries extraction, and functional connectivity calculation. 
+This repository contains several Python scripts designed to carry out various tasks related to fMRI analysis. These tasks include scrubbing, DK atlas registration, ROI selection, timeseries extraction, and functional connectivity calculation. 
 
-Below is the description of each script included in this repository.
+The scripts, listed in their intended order of use, are described below along with an overview of the files included in the repository.
 
 ## Scripts
 
