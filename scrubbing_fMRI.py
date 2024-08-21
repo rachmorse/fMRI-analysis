@@ -125,6 +125,7 @@ def scrub(bold_file, fwd_file, scrubbed_file, threshold=0.5, method="interpolate
 
     print(f"Scrubbing complete. Scrubbed image saved to: {scrubbed_file}")
 
+
 def process_subject(
     subject,
     ses,
@@ -148,7 +149,7 @@ def process_subject(
         error_log (str): Error log file path.
         bold_pattern (str): Pattern for the BOLD file names.
         scrubbed_pattern (str): Pattern for the scrubbed file names.
-    
+
     Raises:
         Exception: If any error occurs during the processing of the subject.
     """
@@ -307,7 +308,7 @@ if __name__ == "__main__":
         "{subject}",
         "native_T1",
         "{subject}_ses-{ses}_run-01_rest_bold_ap_T1-space_scrubbed_{threshold}.nii.gz",
-    )    
+    )
 
     main(
         ses,
@@ -321,4 +322,4 @@ if __name__ == "__main__":
     )
 
     # Uncomment this line to enable parallel processing
-    # main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=True)  
+    # main(ses, root, output_data, output_files, threshold, bold_pattern, scrubbed_pattern, multi=True)

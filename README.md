@@ -66,7 +66,7 @@ Below is the description of each script included in this repository.
 3. **`select_specific_rois.py`**
     - **Purpose:** Processes and saves specific ROIs from the DK atlases in the native BOLD space, zeroing out other regions not listed as selected. This script take a list of ROIs from the DK atlas that you are most interested in analyzing and removes the other ROIs from the DK atlas masks that were created for each subject in `transform_dk_atlas_native_space.py`.
     - **Functions:**
-        - `main`: Main function to load subject masks and chosen ROIs, then process and save the specified ROIs as a new mask for each subject.
+        - `main`: Main function to load subject masks and selected ROIs, then process and save the specified ROIs as a new mask for each subject.
     - **Notes:**
         - Adjust paths for data input and output.
 
@@ -102,7 +102,7 @@ Below is the description of each script included in this repository.
         - Adjust paths for data input and output (including names for this data). 
 
 ## Files 
-1. **`chosen_areas.csv`**
+1. **`selected_rois.csv`**
     - **Purpose:** Contains selected ROIs from the DK atlas that are used in `select_specific_rois.py` to limit the number of ROIs processed throughout the rest of the scripts. The CSV is also used in `compute_subject_functional_connectivity.py` to add the ROI names to the output functional connectivity CSVs.
     - **Notes:**
         -  Change the ROIs in this CSV to any ROIs from the atlas you would like to focus on for your analysis.  

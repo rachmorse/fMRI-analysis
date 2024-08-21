@@ -53,7 +53,7 @@ def main(
         except FileNotFoundError:
             print(f"NIfTI file {nifti_file} does not exist. Skipping this file.")
             continue
-        
+
         aparcaseg_data = aparcaseg_image.get_fdata()
         aparcaseg_affine = aparcaseg_image.affine
 
@@ -68,9 +68,7 @@ def main(
 
         # Extract filename without any suffixes
         base_file_name = Path(nifti_file).with_suffix("").with_suffix("").name
-        new_nifti_file_path = (
-            output_folder / f"{base_file_name}_selected_ROIs.nii.gz"
-        )
+        new_nifti_file_path = output_folder / f"{base_file_name}_selected_ROIs.nii.gz"
 
         # Save the new NIfTI image
         nib.save(rois_image, str(new_nifti_file_path))
@@ -86,9 +84,7 @@ if __name__ == "__main__":
     todo_file = Path(
         "/home/rachel/Desktop/fMRI Analysis/todo.csv"
     )  # Path to the todo file (created in scrubbing_fMRI.py) with subject IDs to be processed.
-    selected_rois_csv = Path(
-        "/pool/guttmann/laboratori/scripts/BOLD_connectivity/chosen_areas.csv"
-    )
+    selected_rois_csv = Path("/home/rachel/Desktop/fMRI Analysis/selected_rois.csv")
     nifti_file_path = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
     output_directory = Path("/home/rachel/Desktop/fMRI Analysis/DK76")
 

@@ -15,7 +15,7 @@ def process_subject_extract(args):
     Args:
         args (tuple): See args in the `main` function, with the addition of:
         subject_id (str): Subject ID.
-    
+
     Raises:
         Exception: If no valid timeseries is extracted for a subject.
     """

@@ -25,11 +25,11 @@ def process_subject_functional(args):
             subjects (list): List of all subjects to be processed.
             error_log_path (Path): Path to the error log file.
             one_timeseries_index (Optional[Union[int, str]]): Index or name of the ROI to focus on (optional).
-            roi_names (list): List of all ROI names.   
+            roi_names (list): List of all ROI names.
 
     Raises:
         FileNotFoundError: If the timeseries file is not found.
-        Exception: If an error occurs while loading the timeseries data 
+        Exception: If an error occurs while loading the timeseries data
     """
     (
         subject_id,
@@ -103,22 +103,22 @@ def main(
     one_timeseries_index: Optional[Union[int, str]] = None,
 ):
     """
-        Main function to run the script.
+    Main function to run the script.
 
-        This function reads the pre-extracted timeseries data for each subject,
-        computes the functional connectivity matrices for all subjects.
+    This function reads the pre-extracted timeseries data for each subject,
+    computes the functional connectivity matrices for all subjects.
 
-        Args:
-            todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
-            output_dir (Union[str, Path]): Path where processed data will be output.
-            root_directory (Union[str, Path]): Root directory for the timeseries data.
-            selected_rois_csv (Path): Path to the selected ROIs CSV.
-            roi_column_name (str): Name of the column containing ROI names.
-            one_timeseries_index (Optional[Union[int, str]]): Index or name of the ROI to focus on for one-to-all connectivity (optional).
+    Args:
+        todo_path (Union[str, Path]): Path to the todo file with subject IDs to be processed.
+        output_dir (Union[str, Path]): Path where processed data will be output.
+        root_directory (Union[str, Path]): Root directory for the timeseries data.
+        selected_rois_csv (Path): Path to the selected ROIs CSV.
+        roi_column_name (str): Name of the column containing ROI names.
+        one_timeseries_index (Optional[Union[int, str]]): Index or name of the ROI to focus on for one-to-all connectivity (optional).
 
-        Raises:
-            FileNotFoundError: If the selected ROIs file is not found.
-            KeyError: If the specified column name is not found in the selected ROIs file
+    Raises:
+        FileNotFoundError: If the selected ROIs file is not found.
+        KeyError: If the specified column name is not found in the selected ROIs file
     """
 
     output_dir = Path(output_dir)
@@ -185,9 +185,7 @@ if __name__ == "__main__":
     output_directory = Path(
         "/home/rachel/Desktop/fMRI Analysis/DK76/connectivity_matrices"
     )
-    selected_rois_csv = Path(
-        "/pool/guttmann/laboratori/scripts/BOLD_connectivity/chosen_areas.csv"
-    )
+    selected_rois_csv = Path("/home/rachel/Desktop/fMRI Analysis/selected_rois.csv")
     roi_column_name = "LabelName"
 
     main(

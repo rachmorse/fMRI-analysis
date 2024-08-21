@@ -43,7 +43,7 @@ def compute_functional_connectivity(
 
     Returns:
         np.ndarray: The raw connectivity matrix.
-    
+
     Raises:
         FileNotFoundError: If the selected ROIs file is not found.
         KeyError: If the specified column name is not found in the selected ROIs file
@@ -53,14 +53,14 @@ def compute_functional_connectivity(
     print("Computing connectivity matrix...")
     correlation_measure = ConnectivityMeasure(kind="correlation", standardize=False)
     connectivity_matrix = correlation_measure.fit_transform([timeseries])[0]
-    
+
     # Set the diagonal to 0 to exclude self-connectivity
     np.fill_diagonal(connectivity_matrix, 0)
 
     # Apply Fisher z-transformation
     fisher_z_matrix = fisher_transform(connectivity_matrix)
 
-    # Import the names of the selected ROIs 
+    # Import the names of the selected ROIs
     if selected_rois_csv and roi_column_name and subjects:
         try:
             selected_rois_df = pd.read_csv(selected_rois_csv, index_col=0)
@@ -135,10 +135,10 @@ def compute_one_to_all_connectivity(
         connectivity_matrix (np.ndarray): The raw connectivity matrix.
         fisher_z_matrix (np.ndarray): The Fisher z-transformed connectivity matrix.
         output_dir (Path): Directory where the connectivity matrices will be saved.
-        one_timeseries_index (Optional[Union[int, str]): Index or name of the ROI for computing one-to-all correlations. 
+        one_timeseries_index (Optional[Union[int, str]): Index or name of the ROI for computing one-to-all correlations.
         roi_names (List[str]): List of ROI names.
         subjects (List[str]): List of all subjects for grouping.
-    
+
     Raises:
         ValueError: If the one_timeseries_index is invalid.
     """
@@ -172,7 +172,7 @@ def compute_one_to_all_connectivity(
         # Insert the one-to-all values for the current subject
         one_to_all_df.loc[subject_id] = one_to_all_raw
 
-        # Save the one-to-all DataFrame for all subjects 
+        # Save the one-to-all DataFrame for all subjects
         one_to_all_csv_output_path = (
             output_dir / f"{roi_names[one_timeseries_index]}_fc_data.csv"
         )
@@ -192,7 +192,7 @@ def compute_one_to_all_connectivity(
         # Insert the one-to-all Fisher z values for the current subject
         one_to_all_fisher_z_df.loc[subject_id] = one_to_all_fisher_z
 
-        # Save the one-to-all Fisher z DataFrame for all subjects 
+        # Save the one-to-all Fisher z DataFrame for all subjects
         one_to_all_fisher_z_csv_output_path = (
             output_dir / f"{roi_names[one_timeseries_index]}_fc_data_fisher_z.csv"
         )

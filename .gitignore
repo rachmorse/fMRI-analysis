@@ -6,11 +6,8 @@
 
 # Do not ignore these files
 !requirements.txt
-!chosen_areas.csv
+!selected_rois.csv
 !README.md
 
 # Do not ignore Python scripts 
 !*.py
-
-# Except do ignore install FreeSurfer script
-install FreeSurfer.py
