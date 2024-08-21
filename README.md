@@ -6,6 +6,7 @@ For functional connectivity analysis with the [Desikan-Killiany (DK) Atlas](http
 
 - [Overview](#overview)
 - [Scripts](#scripts)
+- [CSVs](#csvs)
 - [Setup](#setup)
 
 ## Overview
@@ -99,6 +100,12 @@ Below is the description of each script included in this repository.
         - `main`: Main function to initialize paths and parameters, retrieve timeseries data, compute functional connectivity matrices, and save the results.
     - **Notes:**
         - Adjust paths for data input and output (including names for this data). 
+
+## CSVs 
+1. **`chosen_areas.csv`**
+    - **Purpose:** Contains selected ROIs from the DK atlas that are used in `select_specific_rois.py` to limit the number of ROIs processed throughout the rest of the scripts. The CSV is also used in `compute_subject_functional_connectivity.py` to add the ROI names to the output functional connectivity CSVs.
+    - **Notes:**
+        -  Change the ROIs in this CSV to any ROIs from the atlas you would like to focus on for your analysis.  
 
 ## Setup
 - Ensure the requirements are installed.

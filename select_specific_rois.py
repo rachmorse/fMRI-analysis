@@ -50,30 +50,35 @@ def main(
         try:
             # Load the NIfTI image
             aparcaseg_image = nib.load(nifti_file)
-            aparcaseg_data = aparcaseg_image.get_fdata()
-            aparcaseg_affine = aparcaseg_image.affine
-
-            # Zero out regions not in the selected ROIs list
-            aparcaseg_data[~np.isin(aparcaseg_data, selected_rois)] = 0
-
-            # Create a new NIfTI image with the modified data
-            rois_image = nib.Nifti1Image(aparcaseg_data, aparcaseg_affine)
-
-            # Extract filename without any suffixes
-            base_file_name = Path(nifti_file).with_suffix("").with_suffix("").name
-            new_nifti_file_path = (
-                output_folder / f"{base_file_name}_selected_ROIs.nii.gz"
-            )
-
-            # Save the new NIfTI image
-            nib.save(rois_image, str(new_nifti_file_path))
-
-            # Output indicating successful processing
-            print(
-                f"Successfully processed and saved {nifti_file} to {new_nifti_file_path}."
-            )
         except FileNotFoundError:
             print(f"NIfTI file {nifti_file} does not exist. Skipping this file.")
+            continue
+        
+        aparcaseg_data = aparcaseg_image.get_fdata()
+        aparcaseg_affine = aparcaseg_image.affine
+
+        aparcaseg_data = aparcaseg_image.get_fdata()
+        aparcaseg_affine = aparcaseg_image.affine
+
+        # Zero out regions not in the selected ROIs list
+        aparcaseg_data[~np.isin(aparcaseg_data, selected_rois)] = 0
+
+        # Create a new NIfTI image with the modified data
+        rois_image = nib.Nifti1Image(aparcaseg_data, aparcaseg_affine)
+
+        # Extract filename without any suffixes
+        base_file_name = Path(nifti_file).with_suffix("").with_suffix("").name
+        new_nifti_file_path = (
+            output_folder / f"{base_file_name}_selected_ROIs.nii.gz"
+        )
+
+        # Save the new NIfTI image
+        nib.save(rois_image, str(new_nifti_file_path))
+
+        # Output indicating successful processing
+        print(
+            f"Successfully processed and saved {nifti_file} to {new_nifti_file_path}."
+        )
 
 
 if __name__ == "__main__":
